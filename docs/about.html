@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About | Simon AI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #6366f1;
+      --accent: #22d3ee;
+      --dark: #0f172a;
+      --dark-card: #1e293b;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--dark);
+      color: var(--text);
+      line-height: 1.6;
+    }
+    .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+    header {
+      padding: 80px 0 60px;
+      text-align: center;
+      background: linear-gradient(180deg, rgba(99,102,241,0.15) 0%, transparent 100%);
+    }
+    h1 {
+      font-size: 3rem;
+      font-weight: 700;
+      margin-bottom: 16px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    header p { font-size: 1.25rem; color: var(--text-muted); max-width: 600px; margin: 0 auto; }
+    section { padding: 60px 0; }
+    .story-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 48px;
+      align-items: center;
+    }
+    .story-card {
+      background: var(--dark-card);
+      padding: 32px;
+      border-radius: 16px;
+      border: 1px solid rgba(99,102,241,0.2);
+    }
+    .story-card h2 { font-size: 1.5rem; margin-bottom: 12px; color: var(--accent); }
+    .story-card p { color: var(--text-muted); }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      text-align: center;
+      margin-top: 40px;
+    }
+    .stat-item {
+      background: var(--dark-card);
+      padding: 32px 24px;
+      border-radius: 12px;
+      border: 1px solid rgba(99,102,241,0.2);
+    }
+    .stat-number {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: var(--primary);
+      display: block;
+    }
+    .stat-label { color: var(--text-muted); font-size: 0.95rem; }
+    .team-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 32px;
+      max-width: 800px;
+      margin: 40px auto 0;
+    }
+    .team-card {
+      background: var(--dark-card);
+      padding: 32px;
+      border-radius: 16px;
+      text-align: center;
+      border: 1px solid rgba(99,102,241,0.2);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .team-card:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(99,102,241,0.15); }
+    .avatar {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      margin: 0 auto 20px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: white;
+    }
+    .team-card h3 { font-size: 1.25rem; margin-bottom: 4px; }
+    .team-card .role { color: var(--accent); font-size: 0.9rem; font-weight: 500; margin-bottom: 12px; }
+    .team-card .bio { color: var(--text-muted); font-size: 0.9rem; }
+    .tech-section { background: var(--dark-card); border-radius: 20px; padding: 48px; margin-top: 40px; }
+    .tech-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 32px;
+      margin-top: 32px;
+    }
+    .tech-item { text-align: center; }
+    .tech-icon {
+      width: 60px;
+      height: 60px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      border-radius: 12px;
+      margin: 0 auto 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+    }
+    .tech-item h3 { font-size: 1.1rem; margin-bottom: 8px; }
+    .tech-item p { color: var(--text-muted); font-size: 0.9rem; }
+    .trust-badges {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 24px;
+      margin-top: 40px;
+    }
+    .badge {
+      background: rgba(99,102,241,0.1);
+      border: 1px solid var(--primary);
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .badge::before { content: "✓"; color: var(--accent); font-weight: 700; }
+    .cta {
+      text-align: center;
+      padding: 80px 0;
+      background: linear-gradient(180deg, transparent 0%, rgba(99,102,241,0.1) 100%);
+    }
+    .cta h2 { font-size: 2rem; margin-bottom: 24px; }
+    .cta-button {
+      display: inline-block;
+      background: linear-gradient(135deg, var(--primary), #4f46e5);
+      color: white;
+      padding: 16px 40px;
+      border-radius: 12px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .cta-button:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(99,102,241,0.4); }
+    footer { text-align: center; padding: 40px 0; color: var(--text-muted); border-top: 1px solid rgba(255,255,255,0.1); }
+    @media (max-width: 768px) {
+      h1 { font-size: 2rem; }
+      .story-grid, .stats, .team-grid, .tech-grid { grid-template-columns: 1fr; }
+      .trust-badges { flex-direction: column; align-items: center; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <h1>About Simon AI</h1>
+      <p>Built by entrepreneurs who were tired of guessing what customers want</p>
+    </div>
+  </header>
+
+  <section>
+    <div class="container">
+      <div class="story-grid">
+        <div class="story-card">
+          <h2>Our Story</h2>
+          <p>Built by entrepreneurs who were tired of guessing what customers want. We experienced firsthand the frustration of making business decisions based on gut feeling rather than real customer insights.</p>
+        </div>
+        <div class="story-card">
+          <h2>Our Mission</h2>
+          <p>Make customer intelligence accessible to every small business. We believe that understanding your customers shouldn't require a enterprise budget or a team of data scientists.</p>
+        </div>
+      </div>
+      <div class="stats">
+        <div class="stat-item">
+          <span class="stat-number">500+</span>
+          <span class="stat-label">Businesses Analyzed</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-number">1M+</span>
+          <span class="stat-label">Reviews Processed</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-number">50+</span>
+          <span class="stat-label">Cities Worldwide</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="container">
+      <h2 style="text-align:center;font-size:2rem;margin-bottom:8px;">Meet Our Team</h2>
+      <p style="text-align:center;color:var(--text-muted);">The people behind Simon AI</p>
+      <div class="team-grid">
+        <div class="team-card">
+          <div class="avatar">MK</div>
+          <h3>Michael Kolff</h3>
+          <p class="role">Co-founder & CEO</p>
+          <p class="bio">IE University graduate with BNY Mellon background. Madrid-based entrepreneur passionate about democratizing business intelligence.</p>
+        </div>
+        <div class="team-card">
+          <div class="avatar">J</div>
+          <h3>Julio</h3>
+          <p class="role">AI Director</p>
+          <p class="bio">The brain behind our algorithms. Expert in NLP and machine learning, driving the innovation that powers Simon AI's intelligence engine.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="container">
+      <h2 style="text-align:center;font-size:2rem;">Our Technology</h2>
+      <div class="tech-section">
+        <div class="tech-grid">
+          <div class="tech-item">
+            <div class="tech-icon">🔤</div>
+            <h3>NLP</h3>
+            <p>Advanced natural language processing to understand customer feedback at scale</p>
+          </div>
+          <div class="tech-item">
+            <div class="tech-icon">💭</div>
+            <h3>Sentiment Analysis</h3>
+            <p>Deep learning models that detect emotions and sentiment in every review</p>
+          </div>
+          <div class="tech-item">
+            <div class="tech-icon">👥</div>
+            <h3>Persona Clustering</h3>
+            <p>AI-powered customer segmentation to identify key audience groups</p>
+          </div>
+        </div>
+      </div>
+      <div class="trust-badges">
+        <span class="badge">SOC 2 Compliant</span>
+        <span class="badge">GDPR Ready</span>
+        <span class="badge">99.9% Uptime</span>
+        <span class="badge">Bank-level Encryption</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="cta">
+    <div class="container">
+      <h2>Join 500+ businesses using Simon AI</h2>
+      <a href="#" class="cta-button">Get Started Free</a>
+    </div>
+  </div>
+
+  <footer>
+    <div class="container">
+      <p>© 2024 Simon AI. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>
