@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Case Studies | Simon AI</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{--primary:#6366f1;--accent:#22d3ee;--dark:#0f172a;--darker:#020617;--glass:rgba(255,255,255,0.05);--glass-border:rgba(255,255,255,0.1)}
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Inter',sans-serif;background:var(--darker);color:#fff;line-height:1.6}
+    nav{display:flex;justify-content:space-between;align-items:center;padding:1.25rem 5%;position:fixed;width:100%;top:0;background:rgba(2,6,23,0.9);backdrop-filter:blur(12px);z-index:1000;border-bottom:1px solid var(--glass-border)}
+    .logo{font-size:1.5rem;font-weight:700;color:var(--primary);display:flex;align-items:center;gap:.5rem}
+    .logo::before{content:'';width:28px;height:28px;background:linear-gradient(135deg,var(--primary),var(--accent));border-radius:6px}
+    .nav-links{display:flex;gap:2rem;list-style:none}
+    .nav-links a{color:#94a3b8;text-decoration:none;font-weight:500;transition:color .3s}
+    .nav-links a:hover,.nav-links a.active{color:var(--accent)}
+    .nav-links .demo{background:var(--primary);color:#fff;padding:.5rem 1.25rem;border-radius:6px}
+    .nav-links .demo:hover{background:#4f46e5}
+    header{text-align:center;padding:8rem 5% 4rem;background:radial-gradient(ellipse at top,rgba(99,102,241,0.15) 0%,transparent 60%)}
+    header h1{font-size:clamp(2rem,5vw,3.5rem);margin-bottom:1rem;background:linear-gradient(135deg,#fff,#94a3b8);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+    header p{font-size:1.25rem;color:#94a3b8;max-width:600px;margin:0 auto}
+    .container{max-width:1200px;margin:0 auto;padding:0 5%}
+    .case-study{background:var(--glass);border:1px solid var(--glass-border);border-radius:16px;margin-bottom:3rem;overflow:hidden;backdrop-filter:blur(10px)}
+    .case-study:nth-child(2){animation-delay:.1s}
+    .case-study:nth-child(3){animation-delay:.2s}
+    .cs-header{display:flex;gap:1.5rem;padding:1.5rem;align-items:center;border-bottom:1px solid var(--glass-border)}
+    .cs-image{width:80px;height:80px;border-radius:12px;flex-shrink:0}
+    .cs-image.cafe{background:linear-gradient(135deg,#f59e0b,#d97706)}
+    .cs-image.salon{background:linear-gradient(135deg,#ec4899,#be185d)}
+    .cs-image.gym{background:linear-gradient(135deg,#10b981,#059669)}
+    .cs-meta h3{font-size:1.25rem;margin-bottom:.25rem}
+    .cs-meta .type{color:var(--accent);font-size:.875rem;text-transform:uppercase;letter-spacing:.05em}
+    .cs-body{padding:1.5rem}
+    .metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1rem;margin-bottom:1.5rem}
+    .metric{background:var(--darker);padding:1rem;border-radius:8px;text-align:center}
+    .metric-label{font-size:.75rem;color:#64748b;text-transform:uppercase}
+    .metric-value{font-size:1.5rem;font-weight:700;color:var(--accent)}
+    .metric-value.before{color:#94a3b8}
+    .story{display:grid;grid-template-columns:1fr 1fr;gap:2rem}
+    .story h4{color:var(--primary);font-size:.875rem;text-transform:uppercase;margin-bottom:.5rem}
+    .story p{color:#cbd5e1;font-size:.95rem}
+    .quote{grid-column:1/-1;background:rgba(99,102,241,0.1);border-left:3px solid var(--accent);padding:1rem 1.5rem;border-radius:0 8px 8px 0;margin-top:1rem}
+    .quote p{font-style:italic;color:#e2e8f0}
+    .quote cite{display:block;margin-top:.5rem;color:var(--accent);font-size:.875rem}
+    .cta{text-align:center;padding:4rem 5%;background:linear-gradient(180deg,transparent,rgba(99,102,241,0.1))}
+    .cta h2{font-size:2rem;margin-bottom:1rem}
+    .cta p{color:#94a3b8;margin-bottom:2rem}
+    .cta button{background:linear-gradient(135deg,var(--primary),#4f46e5);color:#fff;border:none;padding:1rem 2.5rem;font-size:1.1rem;font-weight:600;border-radius:8px;cursor:pointer;transition:transform .3s,box-shadow .3s}
+    .cta button:hover{transform:translateY(-2px);box-shadow:0 10px 30px rgba(99,102,241,0.3)}
+    footer{text-align:center;padding:2rem;color:#64748b;font-size:.875rem;border-top:1px solid var(--glass-border)}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+    .case-study{animation:fadeUp .6s ease-out both}
+    @media(max-width:768px){
+      .nav-links{display:none}
+      .story{grid-template-columns:1fr}
+      .cs-header{flex-direction:column;text-align:center}
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <div class="logo">Simon AI</div>
+    <ul class="nav-links">
+      <li><a href="#">Features</a></li>
+      <li><a href="#">Pricing</a></li>
+      <li><a href="#" class="active">Case Studies</a></li>
+      <li><a href="#" class="demo">Demo</a></li>
+    </ul>
+  </nav>
+
+  <header>
+    <h1>Real Results from Real Businesses</h1>
+    <p>See how Madrid businesses are transforming their customer understanding with Simon AI</p>
+  </header>
+
+  <main class="container">
+    <article class="case-study">
+      <div class="cs-header">
+        <div class="cs-image cafe"></div>
+        <div class="cs-meta">
+          <span class="type">Restaurant • Chamberí</span>
+          <h3>La Esquina Café</h3>
+        </div>
+      </div>
+      <div class="cs-body">
+        <div class="metrics">
+          <div class="metric"><span class="metric-label">Reviews Analyzed</span><div class="metric-value">300+</div></div>
+          <div class="metric"><span class="metric-label">Before</span><div class="metric-value before">€8.2K/mo</div></div>
+          <div class="metric"><span class="metric-label">After</span><div class="metric-value">€11.5K/mo</div></div>
+          <div class="metric"><span class="metric-label">Increase</span><div class="metric-value">+40%</div></div>
+        </div>
+        <div class="story">
+          <div><h4>Challenge</h4><p>Despite a loyal breakfast crowd, lunch service was underperforming with low repeat visits.</p></div>
+          <div><h4>Solution</h4><p>Simon AI detected 47 mentions of "brunch" and "something different for lunch" in reviews—insights that were previously buried.</p></div>
+        </div>
+        <div class="quote">
+          <p>"I thought I knew my customers. Simon AI showed me they were literally begging for a brunch menu. We launched it and revenue jumped 40% in 3 months."</p>
+          <cite>— Carlos García, Owner</cite>
+        </div>
+      </div>
+    </article>
+
+    <article class="case-study">
+      <div class="cs-header">
+        <div class="cs-image salon"></div>
+        <div class="cs-meta">
+          <span class="type">Salon • Salamanca</span>
+          <h3>Luxe Hair Studio</h3>
+        </div>
+      </div>
+      <div class="cs-body">
+        <div class="metrics">
+          <div class="metric"><span class="metric-label">Reviews Analyzed</span><div class="metric-value">189</div></div>
+          <div class="metric"><span class="metric-label">Before</span><div class="metric-value before">32/day</div></div>
+          <div class="metric"><span class="metric-label">After</span><div class="metric-value">40/day</div></div>
+          <div class="metric"><span class="metric-label">Increase</span><div class="metric-value">+25%</div></div>
+        </div>
+        <div class="story">
+          <div><h4>Challenge</h4><p>Phone booking was chaotic—clients complained about missed calls and scheduling conflicts during peak hours.</p></div>
+          <div><h4>Solution</h4><p>Analysis revealed "appointment" + "waiting" appeared together 34 times. Added online booking system in response.</p></div>
+        </div>
+        <div class="quote">
+          <p>"The data was crystal clear: people wanted to book online, not call. We implemented it and now handle 25% more appointments without adding staff."</p>
+          <cite>— María López, Founder</cite>
+        </div>
+      </div>
+    </article>
+
+    <article class="case-study">
+      <div class="cs-header">
+        <div class="cs-image gym"></div>
+        <div class="cs-meta">
+          <span class="type">Gym • Centro</span>
+          <h3>FitZone Madrid</h3>
+        </div>
+      </div>
+      <div class="cs-body">
+        <div class="metrics">
+          <div class="metric"><span class="metric-label">Reviews Analyzed</span><div class="metric-value">420</div></div>
+          <div class="metric"><span class="metric-label">Before</span><div class="metric-value before">68%</div></div>
+          <div class="metric"><span class="metric-label">After</span><div class="metric-value">89%</div></div>
+          <div class="metric"><span class="metric-label">Improvement</span><div class="metric-value">+60%</div></div>
+        </div>
+        <div class="story">
+          <div><h4>Challenge</h4><p>Member retention was a growing concern—churn was trending upward and feedback was inconsistent.</p></div>
+          <div><h4>Solution</h4><p>Simon AI identified that group classes (yoga, HIIT) were mentioned 2.3x more than equipment. Expanded class schedule by 40%.</p></div>
+        </div>
+        <div class="quote">
+          <p>"We were investing in new machines when our members actually wanted more classes. Retention improved 60%—that's €50K saved annually in acquisition costs."</p>
+          <cite>— David Ruiz, General Manager</cite>
+        </div>
+      </div>
+    </article>
+  </main>
+
+  <section class="cta">
+    <h2>Ready to understand YOUR customers?</h2>
+    <p>Join 500+ businesses using Simon AI to unlock insights from reviews</p>
+    <button>Start Free Trial</button>
+  </section>
+
+  <footer>
+    <p>© 2026 Simon AI. All rights reserved.</p>
+  </footer>
+</body>
+</html>
