@@ -254,7 +254,7 @@
     async function submitData() {
       const payload = { name: data.businessName, type: data.businessType, city: data.city, country: data.country, address: data.address, reviews: data.manualReviews, source: 'manual' };
       try {
-        await fetch('http://localhost:8000/api/businesses', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        await fetch('https://simon-ai-api.onrender.com/api/businesses', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
       } catch (e) { console.log('Using fallback - data stored locally'); }
       currentStep = 6; showStep(6);
     }

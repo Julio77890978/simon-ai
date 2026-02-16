@@ -145,7 +145,7 @@
         
         async function fetchAnalytics(businessId) {
             try {
-                const res = await fetch(`http://localhost:8000/api/businesses/${businessId}/analytics`);
+                const res = await fetch(`https://simon-ai-api.onrender.com/api/businesses/${businessId}/analytics`);
                 if (!res.ok) throw new Error('API unavailable');
                 return await res.json();
             } catch {
