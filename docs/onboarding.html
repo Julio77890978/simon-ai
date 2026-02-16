@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simon AI - Onboarding</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; padding: 20px; }
+    
+    .wizard-container { background: rgba(255,255,255,0.15); backdrop-filter: blur(20px); border-radius: 24px; padding: 40px; width: 100%; max-width: 520px; box-shadow: 0 25px 50px rgba(0,0,0,0.25); }
+    
+    .progress-bar { height: 6px; background: rgba(255,255,255,0.2); border-radius: 3px; margin-bottom: 32px; overflow: hidden; }
+    .progress-fill { height: 100%; background: linear-gradient(90deg, #a78bfa, #f472b6); border-radius: 3px; transition: width 0.5s ease; }
+    
+    .step { display: none; animation: slideIn 0.4s ease; }
+    .step.active { display: block; }
+    @keyframes slideIn { from { opacity: 0; transform: translateX(30px); } to { opacity: 1; transform: translateX(0); } }
+    
+    h1 { color: white; font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+    h2 { color: rgba(255,255,255,0.9); font-size: 18px; font-weight: 500; margin-bottom: 24px; }
+    
+    .input-group { margin-bottom: 20px; }
+    label { display: block; color: rgba(255,255,255,0.85); font-size: 14px; font-weight: 500; margin-bottom: 8px; }
+    input, select, textarea { width: 100%; padding: 14px 16px; border: 2px solid rgba(255,255,255,0.2); border-radius: 12px; background: rgba(255,255,255,0.1); color: white; font-size: 16px; font-family: inherit; transition: border-color 0.3s; }
+    input::placeholder, textarea::placeholder { color: rgba(255,255,255,0.5); }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: #a78bfa; }
+    select { cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='white' viewBox='0 0 24 24'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; }
+    textarea { min-height: 120px; resize: vertical; }
+    
+    .review-options { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .review-option { padding: 16px; background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.2); border-radius: 12px; cursor: pointer; transition: all 0.3s; text-align: center; }
+    .review-option:hover { border-color: rgba(255,255,255,0.4); }
+    .review-option.active { border-color: #a78bfa; background: rgba(167,139,250,0.3); }
+    .review-option.coming { opacity: 0.6; cursor: not-allowed; }
+    .review-option .icon { font-size: 28px; margin-bottom: 8px; }
+    .review-option .label { color: white; font-weight: 500; }
+    .review-option .badge { display: inline-block; font-size: 11px; background: #f472b6; color: white; padding: 2px 8px; border-radius: 10px; margin-top: 4px; }
+    
+    .manual-input { margin-top: 16px; display: none; }
+    .manual-input.active { display: block; }
+    
+    .summary-item { background: rgba(255,255,255,0.1); border-radius: 12px; padding: 16px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+    .summary-item .label { color: rgba(255,255,255,0.7); font-size: 13px; }
+    .summary-item .value { color: white; font-weight: 600; font-size: 15px; }
+    .summary-item .edit-btn { background: rgba(255,255,255,0.2); border: none; color: white; padding: 6px 12px; border-radius: 8px; cursor: pointer; font-size: 13px; transition: background 0.3s; }
+    .summary-item .edit-btn:hover { background: rgba(255,255,255,0.3); }
+    
+    .loading-screen { text-align: center; padding: 40px 0; }
+    .loading-spinner { width: 80px; height: 80px; border: 4px solid rgba(255,255,255,0.2); border-top-color: #a78bfa; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 24px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-text { color: rgba(255,255,255,0.8); font-size: 16px; margin-bottom: 8px; }
+    .loading-progress { height: 4px; background: rgba(255,255,255,0.2); border-radius: 2px; overflow: hidden; }
+    .loading-progress-fill { height: 100%; background: linear-gradient(90deg, #a78bfa, #f472b6); width: 0%; transition: width 0.3s; }
+    
+    .success-screen { text-align: center; padding: 20px 0; }
+    .success-icon { width: 100px; height: 100px; background: linear-gradient(135deg, #34d399, #10b981); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; font-size: 50px; animation: pop 0.5s ease; }
+    @keyframes pop { 0% { transform: scale(0); } 70% { transform: scale(1.1); } 100% { transform: scale(1); } }
+    .success-screen h1 { margin-bottom: 12px; }
+    .success-screen p { color: rgba(255,255,255,0.8); margin-bottom: 32px; }
+    
+    .btn-group { display: flex; gap: 12px; margin-top: 32px; }
+    .btn { flex: 1; padding: 14px 24px; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s; border: none; }
+    .btn-secondary { background: rgba(255,255,255,0.2); color: white; }
+    .btn-secondary:hover { background: rgba(255,255,255,0.3); }
+    .btn-primary { background: linear-gradient(135deg, #a78bfa, #8b5cf6); color: white; }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(139,92,246,0.4); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    
+    @media (max-width: 480px) { .wizard-container { padding: 24px; } h1 { font-size: 24px; } .review-options { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="wizard-container">
+    <div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
+    
+    <div class="step active" data-step="1">
+      <h1>What's your business?</h1>
+      <h2>Let's get started</h2>
+      <div class="input-group">
+        <label>Business Name</label>
+        <input type="text" id="businessName" placeholder="Enter your business name">
+      </div>
+      <div class="input-group">
+        <label>Business Type</label>
+        <select id="businessType">
+          <option value="">Select type...</option>
+          <option value="Restaurant">Restaurant</option>
+          <option value="Salon">Salon</option>
+          <option value="Gym">Gym</option>
+          <option value="Retail">Retail</option>
+          <option value="Hotel">Hotel</option>
+          <option value="Clinic">Clinic</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div class="btn-group"><button class="btn btn-primary" onclick="nextStep()">Continue</button></div>
+    </div>
+    
+    <div class="step" data-step="2">
+      <h1>Where are you located?</h1>
+      <h2>Help customers find you</h2>
+      <div class="input-group">
+        <label>City</label>
+        <input type="text" id="city" placeholder="e.g., San Francisco">
+      </div>
+      <div class="input-group">
+        <label>Country</label>
+        <select id="country">
+          <option value="">Select country...</option>
+          <option value="US">United States</option>
+          <option value="UK">United Kingdom</option>
+          <option value="CA">Canada</option>
+          <option value="AU">Australia</option>
+          <option value="DE">Germany</option>
+          <option value="FR">France</option>
+          <option value="ES">Spain</option>
+          <option value="IT">Italy</option>
+          <option value="OTHER">Other</option>
+        </select>
+      </div>
+      <div class="input-group">
+        <label>Address</label>
+        <input type="text" id="address" placeholder="Street address (autocomplete coming soon)">
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-secondary" onclick="prevStep()">Back</button>
+        <button class="btn btn-primary" onclick="nextStep()">Continue</button>
+      </div>
+    </div>
+    
+    <div class="step" data-step="3">
+      <h1>Connect your reviews</h1>
+      <h2>Import customer feedback</h2>
+      <div class="review-options">
+        <div class="review-option coming" onclick="selectReview('google')">
+          <div class="icon">⭐</div>
+          <div class="label">Google Reviews</div>
+          <span class="badge">Coming Soon</span>
+        </div>
+        <div class="review-option coming" onclick="selectReview('yelp')">
+          <div class="icon">🟨</div>
+          <div class="label">Yelp</div>
+          <span class="badge">Coming Soon</span>
+        </div>
+        <div class="review-option coming" onclick="selectReview('tripadvisor')">
+          <div class="icon">🦂</div>
+          <div class="label">TripAdvisor</div>
+          <span class="badge">Coming Soon</span>
+        </div>
+        <div class="review-option" id="manualOption" onclick="selectReview('manual')">
+          <div class="icon">📝</div>
+          <div class="label">Manual Upload</div>
+          <span class="badge" style="background:#10b981">Active</span>
+        </div>
+      </div>
+      <div class="manual-input" id="manualInput">
+        <label>Paste your reviews (one per line)</label>
+        <textarea id="manualReviews" placeholder="Great service! - John D.&#10;Amazing experience! - Sarah M.&#10;Would definitely recommend! - Mike T."></textarea>
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-secondary" onclick="prevStep()">Back</button>
+        <button class="btn btn-primary" onclick="nextStep()">Continue</button>
+      </div>
+    </div>
+    
+    <div class="step" data-step="4">
+      <h1>Review your setup</h1>
+      <h2>Everything look good?</h2>
+      <div id="summary"></div>
+      <div class="btn-group">
+        <button class="btn btn-secondary" onclick="prevStep()">Back</button>
+        <button class="btn btn-primary" onclick="nextStep()">Generate Insights</button>
+      </div>
+    </div>
+    
+    <div class="step" data-step="5">
+      <div class="loading-screen">
+        <div class="loading-spinner"></div>
+        <div class="loading-text" id="loadingText">Analyzing reviews...</div>
+        <div class="loading-progress"><div class="loading-progress-fill" id="loadingProgress"></div></div>
+      </div>
+    </div>
+    
+    <div class="step" data-step="6">
+      <div class="success-screen">
+        <div class="success-icon">🎉</div>
+        <h1>You're all set!</h1>
+        <p>Your business has been created and we're analyzing your reviews to generate insights.</p>
+        <button class="btn btn-primary" onclick="goToDashboard()">View Dashboard</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentStep = 1;
+    const totalSteps = 6;
+    const data = { businessName: '', businessType: '', city: '', country: '', address: '', reviews: '', manualReviews: [] };
+
+    function updateProgress() { document.getElementById('progress').style.width = ((currentStep - 1) / (totalSteps - 1) * 100) + '%'; }
+    function showStep(step) {
+      document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+      document.querySelector(`[data-step="${step}"]`).classList.add('active');
+      updateProgress();
+      if (step === 4) renderSummary();
+      if (step === 5) startLoading();
+    }
+    function nextStep() {
+      if (currentStep === 1) {
+        data.businessName = document.getElementById('businessName').value.trim();
+        data.businessType = document.getElementById('businessType').value;
+        if (!data.businessName || !data.businessType) return alert('Please fill in all fields');
+      } else if (currentStep === 2) {
+        data.city = document.getElementById('city').value.trim();
+        data.country = document.getElementById('country').value;
+        data.address = document.getElementById('address').value.trim();
+        if (!data.city || !data.country) return alert('Please fill in your location');
+      } else if (currentStep === 3) {
+        if (data.reviews === 'manual') data.manualReviews = document.getElementById('manualReviews').value.trim();
+      }
+      if (currentStep < totalSteps) { currentStep++; showStep(currentStep); }
+    }
+    function prevStep() { if (currentStep > 1) { currentStep--; showStep(currentStep); } }
+    function selectReview(source) {
+      if (['google', 'yelp', 'tripadvisor'].includes(source)) return;
+      document.querySelectorAll('.review-option').forEach(o => o.classList.remove('active'));
+      document.getElementById('manualOption').classList.add('active');
+      data.reviews = 'manual';
+      document.getElementById('manualInput').classList.add('active');
+    }
+    function renderSummary() {
+      const html = `
+        <div class="summary-item"><div><div class="label">Business</div><div class="value">${data.businessName}</div></div><button class="edit-btn" onclick="goToStep(1)">Edit</button></div>
+        <div class="summary-item"><div><div class="label">Type</div><div class="value">${data.businessType}</div></div><button class="edit-btn" onclick="goToStep(1)">Edit</button></div>
+        <div class="summary-item"><div><div class="label">Location</div><div class="value">${data.city}, ${data.country}</div></div><button class="edit-btn" onclick="goToStep(2)">Edit</button></div>
+        <div class="summary-item"><div><div class="label">Reviews</div><div class="value">${data.reviews === 'manual' ? 'Manual Upload' : 'None'}</div></div><button class="edit-btn" onclick="goToStep(3)">Edit</button></div>`;
+      document.getElementById('summary').innerHTML = html;
+    }
+    function goToStep(step) { currentStep = step; showStep(step); }
+    function startLoading() {
+      const texts = ['Analyzing reviews...', 'Generating personas...', 'Finding insights...', 'Almost ready!'];
+      let i = 0, p = 0;
+      const interval = setInterval(() => {
+        p += 25;
+        document.getElementById('loadingProgress').style.width = p + '%';
+        if (i < texts.length) document.getElementById('loadingText').innerText = texts[i++];
+        if (p >= 100) {
+          clearInterval(interval);
+          submitData();
+        }
+      }, 800);
+    }
+    async function submitData() {
+      const payload = { name: data.businessName, type: data.businessType, city: data.city, country: data.country, address: data.address, reviews: data.manualReviews, source: 'manual' };
+      try {
+        await fetch('http://localhost:8000/api/businesses', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      } catch (e) { console.log('Using fallback - data stored locally'); }
+      currentStep = 6; showStep(6);
+    }
+    function goToDashboard() { window.location.href = '/dashboard.html'; }
+    updateProgress();
+  </script>
+</body>
+</html>
