@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simon AI — Chat Simulator</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{font-family:'Inter',sans-serif}
+body{background:linear-gradient(135deg,#f5f7fa 0%,#e4e8ec 100%);min-height:100vh}
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px}
+.chat-scroll{scroll-behavior:smooth}
+.bubble-user{background:linear-gradient(135deg,#5c7cfa,#7c3aed);color:white;border-radius:20px 20px 4px 20px;box-shadow:0 2px 8px rgba(92,124,250,0.3)}
+.bubble-persona{background:#fff;color:#1a1a2e;border-radius:20px 20px 20px 4px;box-shadow:0 2px 8px rgba(0,0,0,0.08)}
+.header-gradient{background:linear-gradient(135deg,#667eea,#764ba2)}
+.typing-dot{animation:bounce 1.4s infinite ease-in-out}
+.typing-dot:nth-child(1){animation-delay:0s}
+.typing-dot:nth-child(2){animation-delay:0.2s}
+.typing-dot:nth-child(3){animation-delay:0.4s}
+@keyframes bounce{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-8px)}}
+.persona-card.active{background:linear-gradient(135deg,#667eea,#764ba2);color:white}
+.persona-card.active .persona-desc{color:rgba(255,255,255,0.8)}
+.fade-in{animation:fadeIn 0.3s ease-out}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body class="p-4 md:p-8">
+<div class="max-w-6xl mx-auto">
+<div class="bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row" style="height:85vh">
+<!-- Sidebar -->
+<div class="w-full md:w-80 bg-gray-50 border-r flex flex-col">
+<div class="p-4 border-b">
+<h1 class="text-lg font-bold gradient-text>Simon AI</h1>
+<p class="text-xs text-gray-500">Customer Intelligence</p>
+</div>
+<div class="p-3 border-b">
+<label class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Select Business</label>
+<select id="businessSelect" class="w-full mt-1 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
+<option value="demo">Demo Mode</option>
+</select>
+</div>
+<div class="p-3 border-b">
+<label class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Personas</label>
+</div>
+<div id="personaList" class="flex-1 overflow-y-auto p-2 space-y-2">
+<!-- Personas loaded via JS -->
+</div>
+</div>
+<!-- Chat Area -->
+<div class="flex-1 flex flex-col">
+<!-- Header -->
+<div class="header-gradient p-4 flex items-center gap-3">
+<div id="personaAvatar" class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center text-2xl">👤</div>
+<div class="flex-1">
+<div id="personaName" class="text-white font-semibold">Select a persona</div>
+<div id="personaType" class="text-white/70 text-sm">Choose from the sidebar</div>
+</div>
+<div class="flex gap-2">
+<button onclick="exportChat()" class="p-2 bg-white/20 rounded-lg hover:bg-white/30 transition" title="Export chat">
+<svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+</button>
+<button onclick="clearChat()" class="p-2 bg-white/20 rounded-lg hover:bg-white/30 transition" title="New conversation">
+<svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+</button>
+</div>
+</div>
+<!-- Suggested Questions -->
+<div id="suggestionsPanel" class="bg-purple-50 p-3 border-b hidden">
+<div class="flex items-center gap-2 mb-2">
+<span class="text-xs font-semibold text-purple-600">💡 Suggested Questions</span>
+</div>
+<div id="suggestions" class="flex flex-wrap gap-2">
+</div>
+</div>
+<!-- Messages -->
+<div id="messages" class="flex-1 overflow-y-auto p-4 space-y-3 chat-scroll bg-gray-50">
+<div class="text-center text-gray-400 py-20">
+<span class="text-6xl mb-4 block">💬</span>
+<p class="text-lg font-medium">Select a persona to start chatting</p>
+<p class="text-sm mt-2">Ask about their experience, preferences, or feedback</p>
+</div>
+</div>
+<!-- Typing Indicator -->
+<div id="typingIndicator" class="hidden px-4 py-2">
+<div class="bubble-persona px-4 py-3 inline-flex gap-1">
+<div class="w-2 h-2 bg-gray-400 rounded-full typing-dot"></div>
+<div class="w-2 h-2 bg-gray-400 rounded-full typing-dot"></div>
+<div class="w-2 h-2 bg-gray-400 rounded-full typing-dot"></div>
+</div>
+</div>
+<!-- Input -->
+<div class="p-4 bg-white border-t">
+<div class="flex gap-2">
+<input type="text" id="messageInput" placeholder="Type your message..." class="flex-1 px-4 py-3 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent" onkeydown="if(event.key==='Enter')sendMessage()">
+<button onclick="sendMessage()" class="px-6 py-3 header-gradient text-white rounded-2xl hover:opacity-90 transition font-medium">Send</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<script>
+const API='http://localhost:8000/api';
+const STORAGE_KEY='simon_chat_history';
+
+const personas=[
+{id:'price_critic',name:'Alex',age:'28-35',type:'Price-Sensitive Critic',avatar:'💰',color:'#f97316',questions:['What would make you pay more?','What\'s your budget?','Are discounts important to you?','What do you value most for the price?']},
+{id:'loyal_regular',name:'Maria',age:'45-55',type:'Loyal Regular',avatar:'⭐',color:'#22c55e',questions:['How long have you been a customer?','What keeps you coming back?','What would improve your experience?','Would you recommend us?']},
+{id:'young_professional',name:'James',age:'25-32',type:'Young Professional',avatar:'💼',color:'#3b82f6',questions:['What do you look for in a service?','How do you prefer to book?','What\'s your ideal experience?','How important is convenience?']},
+{id:'dissatisfied',name:'Sam',age:'35-45',type:'Dissatisfied Customer',avatar:'😔',color:'#ef4444',questions:['What was your biggest frustration?','What would make you return?','How can we fix this?','What did you expect?']},
+{id:'enthusiast',name:'Emma',age:'20-28',type:'Brand Enthusiast',avatar:'🔥',color:'#ec4899',questions:['What\'s your favorite thing about us?','How do you share your experience?','What new features would you love?','What makes us special?']}
+];
+
+let currentPersona=null;
+let currentBusiness='demo';
+let chatHistory=loadChatHistory();
+
+function loadChatHistory(){
+const saved=localStorage.getItem(STORAGE_KEY);
+return saved?JSON.parse(saved):[];
+}
+
+function saveChatHistory(){
+localStorage.setItem(STORAGE_KEY,JSON.stringify(chatHistory));
+}
+
+function initPersonas(){
+const list=document.getElementById('personaList');
+list.innerHTML=personas.map(p=>`
+<button onclick="selectPersona('${p.id}')" class="persona-card w-full p-3 rounded-xl text-left hover:bg-gray-100 transition" data-id="${p.id}">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full flex items-center justify-center text-xl" style="background:${p.color}20">${p.avatar}</div>
+<div class="min-w-0">
+<div class="font-semibold text-gray-900">${p.name}</div>
+<div class="persona-desc text-xs text-gray-500">${p.type}</div>
+</div>
+</div>
+</button>
+`).join('');
+if(personas.length)selectPersona(personas[0].id);
+}
+
+function selectPersona(id){
+currentPersona=personas.find(p=>p.id===id);
+if(!currentPersona)return;
+
+document.querySelectorAll('.persona-card').forEach(el=>{
+el.classList.toggle('active',el.dataset.id===id);
+el.querySelector('.persona-desc').classList.toggle('text-white',el.dataset.id===id);
+el.querySelector('.font-semibold').classList.toggle('text-white',el.dataset.id===id);
+});
+
+document.getElementById('personaAvatar').textContent=currentPersona.avatar;
+document.getElementById('personaAvatar').style.background='rgba(255,255,255,0.2)';
+document.getElementById('personaName').textContent=currentPersona.name;
+document.getElementById('personaType').textContent=currentPersona.type;
+
+const panel=document.getElementById('suggestionsPanel');
+panel.classList.remove('hidden');
+document.getElementById('suggestions').innerHTML=currentPersona.questions.map(q=`
+<button onclick="sendSuggestion('${q}')" class="px-3 py-1.5 bg-white border border-purple-200 rounded-full text-xs text-purple-700 hover:bg-purple-50 transition">${q}</button>
+`).join('');
+
+loadConversation();
+}
+
+function loadConversation(){
+const msgs=document.getElementById('messages');
+const conv=chatHistory.filter(m=>m.personaId===currentPersona?.id);
+if(conv.length===0){
+msgs.innerHTML=`
+<div class="bubble-persona px-4 py-3 max-w-md fade-in">
+<p class="text-sm">Hi! I'm ${currentPersona.name}. I'm a ${currentPersona.age} year old customer. Ask me anything about my experience!</p>
+<span class="text-xs text-gray-400 mt-1 block">${formatTime(new Date())}</span>
+</div>`;
+}else{
+msgs.innerHTML=conv.map(m=>createMessageBubble(m)).join('');
+}
+scrollToBottom();
+}
+
+function createMessageBubble(msg){
+const isUser=msg.role==='user';
+return`
+<div class="flex ${isUser?'justify-end':'justify-start'} fade-in">
+<div class="${isUser?'bubble-user':'bubble-persona'} px-4 py-3 max-w-md">
+<p class="text-sm">${msg.content}</p>
+<span class="text-xs ${isUser?'text-white/60':'text-gray-400'} mt-1 block">${formatTime(new Date(msg.timestamp))}</span>
+</div>
+</div>`;
+}
+
+function formatTime(date){
+return date.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+}
+
+function scrollToBottom(){
+document.getElementById('messages').scrollTop=document.getElementById('messages').scrollHeight;
+}
+
+async function sendMessage(){
+if(!currentPersona)return;
+const input=document.getElementById('messageInput');
+const text=input.value.trim();
+if(!text)return;
+input.value='';
+
+const msg={role:'user',content:text,timestamp:new Date().toISOString(),personaId:currentPersona.id};
+chatHistory.push(msg);
+saveChatHistory();
+
+const msgs=document.getElementById('messages');
+msgs.innerHTML+=createMessageBubble(msg);
+scrollToBottom();
+
+document.getElementById('typingIndicator').classList.remove('hidden');
+scrollToBottom();
+
+try{
+const resp=await fetch(`${API}/businesses/${currentBusiness}/chat`,{
+method:'POST',
+headers:{'Content-Type':'application/json'},
+body:JSON.stringify({business_id:currentBusiness,persona_id:currentPersona.id,message:text,history:chatHistory.filter(m=>m.personaId===currentPersona.id)})
+});
+const data=await resp.json();
+document.getElementById('typingIndicator').classList.add('hidden');
+
+const reply={role:'persona',content:data.response||getDemoResponse(text),timestamp:new Date().toISOString(),personaId:currentPersona.id};
+chatHistory.push(reply);
+saveChatHistory();
+
+msgs.innerHTML+=createMessageBubble(reply);
+}catch(e){
+document.getElementById('typingIndicator').classList.add('hidden');
+const reply={role:'persona',content:getDemoResponse(text),timestamp:new Date().toISOString(),personaId:currentPersona.id};
+chatHistory.push(reply);
+saveChatHistory();
+msgs.innerHTML+=createMessageBubble(reply);
+}
+scrollToBottom();
+}
+
+function getDemoResponse(input){
+const responses={
+price_critic:["I'm always looking for the best value. Price is a big factor for me.","I won't pay more unless I really see the benefit.","Discounts and deals definitely influence my decisions."],
+loyal_regular:["I've been coming here for years! It's become my go-to place.","The consistency keeps me coming back. I know what I'll get.","I'd definitely recommend this to friends and family."],
+young_professional:["I value convenience above all. Time is money, you know?","I prefer booking online or through an app. Can't be calling around.","Quick service with good quality is what I'm after."],
+dissatisfied:["Honestly, my last experience wasn't great.","I felt like my concerns weren't taken seriously.","I'd consider coming back if things changed, but I'm not sure."],
+enthusiast:["I love sharing this place on social media!","The unique atmosphere keeps me coming back.","I've converted so many friends to become customers here!"]
+};
+const opts=responses[currentPersona?.id]||["That's an interesting question!","Could you tell me more?","I'd love to share my thoughts on that."];
+return opts[Math.floor(Math.random()*opts.length)];
+}
+
+function sendSuggestion(text){
+document.getElementById('messageInput').value=text;
+sendMessage();
+}
+
+function clearChat(){
+if(!currentPersona)return;
+if(!confirm('Start a new conversation? This will clear current chat.'))return;
+chatHistory=chatHistory.filter(m=>m.personaId!==currentPersona.id);
+saveChatHistory();
+loadConversation();
+}
+
+function exportChat(){
+if(!currentPersona)return;
+const conv=chatHistory.filter(m=>m.personaId===currentPersona.id);
+let text=`Chat with ${currentPersona.name} (${currentPersona.type})\n${'='.repeat(40)}\n\n`;
+conv.forEach(m=>{
+const role=m.role==='user'?'You':'Customer';
+const time=new Date(m.timestamp).toLocaleString();
+text+=`[${time}] ${role}: ${m.content}\n\n`;
+});
+
+const blob=new Blob([text],{type:'text/plain'});
+const a=document.createElement('a');
+a.href=URL.createObjectURL(blob);
+a.download=`chat-${currentPersona.name.toLowerCase()}-${Date.now()}.txt`;
+a.click();
+}
+
+document.getElementById('businessSelect').addEventListener('change',e=>{
+currentBusiness=e.target.value;
+});
+
+initPersonas();
+</script>
+</body>
+</html>

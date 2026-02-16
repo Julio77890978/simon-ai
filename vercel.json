@@ -1,0 +1,10 @@
+{
+  "buildCommand": "",
+  "outputDirectory": "public",
+  "rewrites": [
+    { "source": "/app", "destination": "/app.html" },
+    { "source": "/analytics", "destination": "/analytics.html" },
+    { "source": "/chat", "destination": "/chat-enhanced.html" },
+    { "source": "/onboarding", "destination": "/onboarding.html" }
+  ]
+}

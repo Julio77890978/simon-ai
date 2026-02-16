@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simon AI — Customer Intelligence for SMEs</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      fontFamily: { sans: ['Inter', 'sans-serif'] },
+      colors: {
+        brand: { 50:'#f0f4ff', 100:'#dbe4ff', 200:'#bac8ff', 300:'#91a7ff', 400:'#748ffc', 500:'#5c7cfa', 600:'#4c6ef5', 700:'#4263eb', 800:'#3b5bdb', 900:'#364fc7' },
+      }
+    }
+  }
+}
+</script>
+<style>
+* { font-family: 'Inter', sans-serif; }
+.glass { background: rgba(255,255,255,0.7); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.3); }
+.card-hover { transition: all 0.3s cubic-bezier(0.4,0,0.2,1); }
+.card-hover:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(0,0,0,0.08); }
+.gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+.gradient-text { background: linear-gradient(135deg, #4c6ef5, #7c3aed); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.sentiment-positive { border-left: 4px solid #22c55e; }
+.sentiment-negative { border-left: 4px solid #ef4444; }
+.sentiment-mixed { border-left: 4px solid #f59e0b; }
+.chat-bubble-user { background: linear-gradient(135deg, #4c6ef5, #7c3aed); color: white; border-radius: 20px 20px 4px 20px; }
+.chat-bubble-persona { background: #f1f3f5; color: #1a1a2e; border-radius: 20px 20px 20px 4px; }
+.fade-in { animation: fadeIn 0.5s ease-out; }
+@keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+.pulse-dot { animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.5; } }
+.tab-active { border-bottom: 3px solid #4c6ef5; color: #4c6ef5; font-weight: 600; }
+.persona-ring { box-shadow: 0 0 0 3px #4c6ef5, 0 0 0 6px rgba(76,110,245,0.2); }
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+</style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+<!-- Navigation -->
+<nav class="bg-white border-b border-gray-200 sticky top-0 z-50">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between h-16">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 gradient-bg rounded-xl flex items-center justify-center">
+          <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+        </div>
+        <span class="text-xl font-bold gradient-text">Simon AI</span>
+        <span class="text-xs bg-brand-100 text-brand-700 px-2 py-0.5 rounded-full font-medium">BETA</span>
+      </div>
+      
+      <div class="flex items-center gap-2" id="business-selector">
+        <!-- Populated dynamically -->
+      </div>
+      
+      <div class="flex items-center gap-3">
+        <button onclick="showAddBusiness()" class="text-sm bg-brand-600 text-white px-4 py-2 rounded-lg hover:bg-brand-700 transition font-medium">+ Add Business</button>
+        <div class="w-8 h-8 bg-brand-100 rounded-full flex items-center justify-center">
+          <span class="text-brand-700 font-semibold text-sm">M</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- Tabs -->
+<div class="bg-white border-b">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex gap-8" id="tabs">
+      <button onclick="switchTab('dashboard')" class="py-3 text-sm font-medium text-gray-500 hover:text-gray-700 border-b-3 border-transparent tab-active" data-tab="dashboard">
+        📊 Dashboard
+      </button>
+      <button onclick="switchTab('personas')" class="py-3 text-sm font-medium text-gray-500 hover:text-gray-700 border-b-3 border-transparent" data-tab="personas">
+        👥 Personas
+      </button>
+      <button onclick="switchTab('chat')" class="py-3 text-sm font-medium text-gray-500 hover:text-gray-700 border-b-3 border-transparent" data-tab="chat">
+        💬 Chat Simulator
+      </button>
+      <button onclick="switchTab('insights')" class="py-3 text-sm font-medium text-gray-500 hover:text-gray-700 border-b-3 border-transparent" data-tab="insights">
+        💡 Insights
+      </button>
+      <button onclick="switchTab('reviews')" class="py-3 text-sm font-medium text-gray-500 hover:text-gray-700 border-b-3 border-transparent" data-tab="reviews">
+        ⭐ Reviews
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Main Content -->
+<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  
+  <!-- Dashboard Tab -->
+  <div id="tab-dashboard" class="fade-in">
+    <!-- KPI Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+      <div class="bg-white rounded-2xl p-6 card-hover shadow-sm">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-sm text-gray-500 font-medium">Total Reviews</span>
+          <span class="text-2xl">📝</span>
+        </div>
+        <div class="text-3xl font-bold text-gray-900" id="kpi-reviews">—</div>
+        <div class="text-xs text-green-600 mt-1">+12% this month</div>
+      </div>
+      <div class="bg-white rounded-2xl p-6 card-hover shadow-sm">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-sm text-gray-500 font-medium">Avg Rating</span>
+          <span class="text-2xl">⭐</span>
+        </div>
+        <div class="text-3xl font-bold text-gray-900" id="kpi-rating">—</div>
+        <div class="text-xs text-gray-500 mt-1">Industry avg: 4.1</div>
+      </div>
+      <div class="bg-white rounded-2xl p-6 card-hover shadow-sm">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-sm text-gray-500 font-medium">Customer Personas</span>
+          <span class="text-2xl">👥</span>
+        </div>
+        <div class="text-3xl font-bold text-gray-900" id="kpi-personas">—</div>
+        <div class="text-xs text-brand-600 mt-1">AI-generated</div>
+      </div>
+      <div class="bg-white rounded-2xl p-6 card-hover shadow-sm">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-sm text-gray-500 font-medium">Sentiment Score</span>
+          <span class="text-2xl">😊</span>
+        </div>
+        <div class="text-3xl font-bold text-gray-900" id="kpi-sentiment">—</div>
+        <div class="text-xs text-green-600 mt-1" id="kpi-sentiment-detail">—</div>
+      </div>
+    </div>
+    
+    <!-- Charts Row -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+      <div class="bg-white rounded-2xl p-6 shadow-sm">
+        <h3 class="font-semibold text-gray-900 mb-4">Rating Distribution</h3>
+        <canvas id="ratingChart" height="200"></canvas>
+      </div>
+      <div class="bg-white rounded-2xl p-6 shadow-sm">
+        <h3 class="font-semibold text-gray-900 mb-4">Sentiment Breakdown</h3>
+        <canvas id="sentimentChart" height="200"></canvas>
+      </div>
+    </div>
+    
+    <!-- Persona Preview Cards -->
+    <h3 class="font-semibold text-gray-900 mb-4 text-lg">Top Customer Personas</h3>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="persona-preview-cards">
+      <!-- Populated dynamically -->
+    </div>
+  </div>
+  
+  <!-- Personas Tab -->
+  <div id="tab-personas" class="hidden fade-in">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div class="lg:col-span-1">
+        <h3 class="font-semibold text-gray-900 mb-4">Customer Segments</h3>
+        <div class="space-y-3" id="persona-list">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+      <div class="lg:col-span-2">
+        <div class="bg-white rounded-2xl p-8 shadow-sm" id="persona-detail">
+          <div class="text-center text-gray-400 py-12">
+            <span class="text-5xl mb-4 block">👤</span>
+            <p>Select a persona to view details</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Chat Simulator Tab -->
+  <div id="tab-chat" class="hidden fade-in">
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <div class="lg:col-span-1">
+        <h3 class="font-semibold text-gray-900 mb-4">Talk to a Customer</h3>
+        <p class="text-sm text-gray-500 mb-4">Select a persona to start a simulated conversation. Ask them anything about their experience.</p>
+        <div class="space-y-2" id="chat-persona-list">
+          <!-- Populated dynamically -->
+        </div>
+        <div class="mt-4 p-3 bg-brand-50 rounded-xl">
+          <p class="text-xs text-brand-700 font-medium mb-2">💡 Try asking:</p>
+          <div class="space-y-1">
+            <button onclick="sendSuggestion('What would make you visit more often?')" class="text-xs text-brand-600 hover:text-brand-800 block w-full text-left">"What would make you visit more often?"</button>
+            <button onclick="sendSuggestion('How do you feel about our pricing?')" class="text-xs text-brand-600 hover:text-brand-800 block w-full text-left">"How do you feel about our pricing?"</button>
+            <button onclick="sendSuggestion('Would you recommend us to friends?')" class="text-xs text-brand-600 hover:text-brand-800 block w-full text-left">"Would you recommend us to friends?"</button>
+            <button onclick="sendSuggestion('What is your biggest frustration?')" class="text-xs text-brand-600 hover:text-brand-800 block w-full text-left">"What is your biggest frustration?"</button>
+          </div>
+        </div>
+      </div>
+      <div class="lg:col-span-3">
+        <div class="bg-white rounded-2xl shadow-sm h-[600px] flex flex-col">
+          <!-- Chat Header -->
+          <div class="p-4 border-b flex items-center gap-3" id="chat-header">
+            <div class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-xl">👤</div>
+            <div>
+              <div class="font-semibold text-gray-900" id="chat-persona-name">Select a persona</div>
+              <div class="text-xs text-gray-500" id="chat-persona-desc">Choose from the list on the left</div>
+            </div>
+            <div class="ml-auto">
+              <span class="pulse-dot inline-block w-2 h-2 bg-green-400 rounded-full mr-1"></span>
+              <span class="text-xs text-gray-400">AI Simulated</span>
+            </div>
+          </div>
+          
+          <!-- Chat Messages -->
+          <div class="flex-1 overflow-y-auto p-4 space-y-4" id="chat-messages">
+            <div class="text-center text-gray-400 py-20">
+              <span class="text-5xl mb-4 block">💬</span>
+              <p>Select a persona and start chatting</p>
+              <p class="text-sm mt-2">Ask them about their experience, preferences, and feedback</p>
+            </div>
+          </div>
+          
+          <!-- Chat Input -->
+          <div class="p-4 border-t">
+            <div class="flex gap-2">
+              <input type="text" id="chat-input" placeholder="Ask your customer anything..." class="flex-1 px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent text-sm" onkeydown="if(event.key==='Enter')sendMessage()">
+              <button onclick="sendMessage()" class="px-6 py-3 bg-brand-600 text-white rounded-xl hover:bg-brand-700 transition font-medium text-sm">Send</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Insights Tab -->
+  <div id="tab-insights" class="hidden fade-in">
+    <div class="flex items-center justify-between mb-6">
+      <div>
+        <h3 class="font-semibold text-gray-900 text-lg">Actionable Insights</h3>
+        <p class="text-sm text-gray-500">AI-generated recommendations based on customer feedback analysis</p>
+      </div>
+      <div class="flex gap-2">
+        <button onclick="filterInsights('all')" class="text-xs px-3 py-1.5 rounded-full bg-brand-100 text-brand-700 font-medium">All</button>
+        <button onclick="filterInsights('pricing')" class="text-xs px-3 py-1.5 rounded-full bg-gray-100 text-gray-600 font-medium hover:bg-gray-200">Pricing</button>
+        <button onclick="filterInsights('service')" class="text-xs px-3 py-1.5 rounded-full bg-gray-100 text-gray-600 font-medium hover:bg-gray-200">Service</button>
+        <button onclick="filterInsights('operations')" class="text-xs px-3 py-1.5 rounded-full bg-gray-100 text-gray-600 font-medium hover:bg-gray-200">Operations</button>
+        <button onclick="filterInsights('marketing')" class="text-xs px-3 py-1.5 rounded-full bg-gray-100 text-gray-600 font-medium hover:bg-gray-200">Marketing</button>
+      </div>
+    </div>
+    <div class="space-y-4" id="insights-list">
+      <!-- Populated dynamically -->
+    </div>
+  </div>
+  
+  <!-- Reviews Tab -->
+  <div id="tab-reviews" class="hidden fade-in">
+    <div class="flex items-center justify-between mb-6">
+      <h3 class="font-semibold text-gray-900 text-lg">Customer Reviews</h3>
+      <div class="flex gap-2">
+        <button onclick="filterReviews('all')" class="text-xs px-3 py-1.5 rounded-full bg-brand-100 text-brand-700 font-medium">All</button>
+        <button onclick="filterReviews('positive')" class="text-xs px-3 py-1.5 rounded-full bg-green-100 text-green-700 font-medium">Positive</button>
+        <button onclick="filterReviews('mixed')" class="text-xs px-3 py-1.5 rounded-full bg-yellow-100 text-yellow-700 font-medium">Mixed</button>
+        <button onclick="filterReviews('negative')" class="text-xs px-3 py-1.5 rounded-full bg-red-100 text-red-700 font-medium">Negative</button>
+      </div>
+    </div>
+    <div class="space-y-3" id="reviews-list">
+      <!-- Populated dynamically -->
+    </div>
+  </div>
+  
+</main>
+
+<!-- Add Business Modal -->
+<div id="add-business-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center">
+  <div class="bg-white rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl">
+    <h3 class="text-xl font-bold text-gray-900 mb-2">Add a Business</h3>
+    <p class="text-sm text-gray-500 mb-6">Enter your business details to start generating customer intelligence.</p>
+    <div class="space-y-4">
+      <div>
+        <label class="text-sm font-medium text-gray-700 mb-1 block">Business Name *</label>
+        <input type="text" id="new-biz-name" class="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm" placeholder="e.g. The Corner Café">
+      </div>
+      <div>
+        <label class="text-sm font-medium text-gray-700 mb-1 block">Address</label>
+        <input type="text" id="new-biz-address" class="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm" placeholder="e.g. 123 Main St, Madrid">
+      </div>
+      <div>
+        <label class="text-sm font-medium text-gray-700 mb-1 block">Category</label>
+        <select id="new-biz-category" class="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm">
+          <option value="">Select category...</option>
+          <option>Restaurant/Café</option>
+          <option>Hair Salon</option>
+          <option>Gym/Fitness</option>
+          <option>Dental Practice</option>
+          <option>Auto Repair</option>
+          <option>Retail Store</option>
+          <option>Hotel/B&B</option>
+          <option>Medical Practice</option>
+          <option>Law Firm</option>
+          <option>Real Estate Agency</option>
+          <option>Other</option>
+        </select>
+      </div>
+    </div>
+    <div class="flex gap-3 mt-6">
+      <button onclick="closeAddBusiness()" class="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50">Cancel</button>
+      <button onclick="addBusiness()" class="flex-1 px-4 py-2.5 bg-brand-600 text-white rounded-xl text-sm font-medium hover:bg-brand-700">Analyze Reviews →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = 'http://127.0.0.1:8000/api';
+let currentBusiness = null;
+let businesses = [];
+let personas = [];
+let reviews = [];
+let insights = [];
+let chatHistory = [];
+let selectedChatPersona = null;
+let ratingChart = null;
+let sentimentChart = null;
+
+// ─── Init ────────────────────────────────────────────────────────────────────
+
+async function init() {
+  try {
+    const resp = await fetch(`${API}/businesses`);
+    businesses = await resp.json();
+    renderBusinessSelector();
+    if (businesses.length > 0) selectBusiness(businesses[0].id);
+  } catch(e) {
+    console.error('Failed to connect to API:', e);
+    document.querySelector('main').innerHTML = `
+      <div class="text-center py-20">
+        <span class="text-5xl mb-4 block">⚠️</span>
+        <h2 class="text-xl font-bold text-gray-900 mb-2">Backend Not Running</h2>
+        <p class="text-gray-500">Start the Simon AI backend: <code class="bg-gray-100 px-2 py-1 rounded text-sm">python3 main.py</code></p>
+      </div>`;
+  }
+}
+
+function renderBusinessSelector() {
+  const el = document.getElementById('business-selector');
+  el.innerHTML = businesses.map(b => `
+    <button onclick="selectBusiness('${b.id}')" 
+      class="px-3 py-1.5 rounded-lg text-sm font-medium transition ${currentBusiness?.id === b.id ? 'bg-brand-100 text-brand-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}"
+      data-biz="${b.id}">
+      ${b.name}
+    </button>
+  `).join('');
+}
+
+async function selectBusiness(id) {
+  currentBusiness = businesses.find(b => b.id === id);
+  renderBusinessSelector();
+  
+  // Fetch all data
+  const [reviewsResp, personasResp, insightsResp, analyticsResp] = await Promise.all([
+    fetch(`${API}/businesses/${id}/reviews`),
+    fetch(`${API}/businesses/${id}/personas`),
+    fetch(`${API}/businesses/${id}/insights`),
+    fetch(`${API}/businesses/${id}/analytics`),
+  ]);
+  
+  reviews = await reviewsResp.json();
+  personas = await personasResp.json();
+  insights = await insightsResp.json();
+  const analytics = await analyticsResp.json();
+  
+  renderDashboard(analytics);
+  renderPersonas();
+  renderChatPersonaList();
+  renderInsights();
+  renderReviews();
+}
+
+// ─── Dashboard ───────────────────────────────────────────────────────────────
+
+function renderDashboard(analytics) {
+  document.getElementById('kpi-reviews').textContent = analytics.total_reviews;
+  document.getElementById('kpi-rating').textContent = analytics.avg_rating;
+  document.getElementById('kpi-personas').textContent = analytics.persona_count;
+  document.getElementById('kpi-sentiment').textContent = (analytics.sentiment.average > 0 ? '+' : '') + analytics.sentiment.average;
+  document.getElementById('kpi-sentiment-detail').textContent = `${analytics.sentiment.positive_pct}% positive`;
+  
+  // Rating Chart
+  if (ratingChart) ratingChart.destroy();
+  const ratingCtx = document.getElementById('ratingChart').getContext('2d');
+  ratingChart = new Chart(ratingCtx, {
+    type: 'bar',
+    data: {
+      labels: ['1★', '2★', '3★', '4★', '5★'],
+      datasets: [{
+        data: [1,2,3,4,5].map(r => analytics.rating_distribution[r] || 0),
+        backgroundColor: ['#ef4444','#f97316','#eab308','#84cc16','#22c55e'],
+        borderRadius: 8,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } }, x: { grid: { display: false } } }
+    }
+  });
+  
+  // Sentiment Chart
+  if (sentimentChart) sentimentChart.destroy();
+  const sentCtx = document.getElementById('sentimentChart').getContext('2d');
+  sentimentChart = new Chart(sentCtx, {
+    type: 'doughnut',
+    data: {
+      labels: ['Positive', 'Neutral', 'Negative'],
+      datasets: [{
+        data: [analytics.sentiment.positive_pct, analytics.sentiment.neutral_pct, analytics.sentiment.negative_pct],
+        backgroundColor: ['#22c55e', '#94a3b8', '#ef4444'],
+        borderWidth: 0,
+      }]
+    },
+    options: {
+      responsive: true,
+      cutout: '65%',
+      plugins: { legend: { position: 'bottom' } }
+    }
+  });
+  
+  // Persona Preview Cards
+  const container = document.getElementById('persona-preview-cards');
+  container.innerHTML = personas.slice(0, 3).map((p, i) => `
+    <div class="bg-white rounded-2xl p-6 card-hover shadow-sm cursor-pointer" onclick="switchTab('personas');selectPersona(${i})">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-12 h-12 gradient-bg rounded-full flex items-center justify-center text-white font-bold text-lg">${p.name.charAt(4)}</div>
+        <div>
+          <div class="font-semibold text-gray-900">${p.name}</div>
+          <div class="text-xs text-gray-500">${p.age_range} · ${p.visit_frequency}</div>
+        </div>
+      </div>
+      <p class="text-sm text-gray-600 mb-3 line-clamp-2">${p.description}</p>
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-medium ${p.typical_rating >= 4 ? 'text-green-600' : p.typical_rating >= 3 ? 'text-yellow-600' : 'text-red-600'}">${p.typical_rating}★ avg</span>
+        <span class="text-xs text-gray-400">${p.percentage_of_customers}% of customers</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ─── Personas ────────────────────────────────────────────────────────────────
+
+function renderPersonas() {
+  const list = document.getElementById('persona-list');
+  list.innerHTML = personas.map((p, i) => `
+    <div onclick="selectPersona(${i})" class="bg-white rounded-xl p-4 cursor-pointer card-hover shadow-sm border-2 border-transparent hover:border-brand-200" data-persona="${i}">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 gradient-bg rounded-full flex items-center justify-center text-white font-semibold">${p.name.charAt(4)}</div>
+        <div class="flex-1 min-w-0">
+          <div class="font-semibold text-gray-900 text-sm truncate">${p.name}</div>
+          <div class="text-xs text-gray-500">${p.age_range} · ${p.percentage_of_customers}%</div>
+        </div>
+        <div class="text-xs font-medium ${p.typical_rating >= 4 ? 'text-green-600' : p.typical_rating >= 3 ? 'text-yellow-600' : 'text-red-600'}">${p.typical_rating}★</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function selectPersona(idx) {
+  const p = personas[idx];
+  if (!p) return;
+  
+  // Highlight selected
+  document.querySelectorAll('[data-persona]').forEach(el => el.classList.remove('border-brand-500'));
+  document.querySelector(`[data-persona="${idx}"]`)?.classList.add('border-brand-500');
+  
+  const detail = document.getElementById('persona-detail');
+  detail.innerHTML = `
+    <div class="fade-in">
+      <div class="flex items-center gap-4 mb-6">
+        <div class="w-16 h-16 gradient-bg rounded-full flex items-center justify-center text-white font-bold text-2xl persona-ring">${p.name.charAt(4)}</div>
+        <div>
+          <h2 class="text-2xl font-bold text-gray-900">${p.name}</h2>
+          <p class="text-gray-500">${p.age_range} · ${p.visit_frequency}</p>
+        </div>
+        <div class="ml-auto text-right">
+          <div class="text-2xl font-bold ${p.typical_rating >= 4 ? 'text-green-600' : 'text-yellow-600'}">${p.typical_rating}★</div>
+          <div class="text-xs text-gray-400">${p.percentage_of_customers}% of customers</div>
+        </div>
+      </div>
+      
+      <p class="text-gray-700 mb-6 leading-relaxed">${p.description}</p>
+      
+      <div class="grid grid-cols-2 gap-6 mb-6">
+        <div>
+          <h4 class="font-semibold text-gray-900 mb-2 text-sm">✅ Motivations</h4>
+          <div class="space-y-1.5">
+            ${p.motivations.map(m => `<div class="text-sm text-gray-600 bg-green-50 px-3 py-1.5 rounded-lg">${m}</div>`).join('')}
+          </div>
+        </div>
+        <div>
+          <h4 class="font-semibold text-gray-900 mb-2 text-sm">⚠️ Pain Points</h4>
+          <div class="space-y-1.5">
+            ${p.pain_points.map(pp => `<div class="text-sm text-gray-600 bg-red-50 px-3 py-1.5 rounded-lg">${pp}</div>`).join('')}
+          </div>
+        </div>
+      </div>
+      
+      <div class="grid grid-cols-2 gap-6">
+        <div class="bg-gray-50 rounded-xl p-4">
+          <h4 class="font-semibold text-gray-900 mb-1 text-sm">💰 Spending</h4>
+          <p class="text-sm text-gray-600">${p.spending_behavior}</p>
+        </div>
+        <div class="bg-gray-50 rounded-xl p-4">
+          <h4 class="font-semibold text-gray-900 mb-1 text-sm">📊 Sentiment</h4>
+          <p class="text-sm text-gray-600">${p.sentiment}</p>
+        </div>
+      </div>
+      
+      <div class="mt-6 pt-6 border-t">
+        <button onclick="switchTab('chat');selectChatPersona('${p.id}')" class="w-full py-3 bg-brand-600 text-white rounded-xl font-medium hover:bg-brand-700 transition">
+          💬 Chat with ${p.name}
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+// ─── Chat ────────────────────────────────────────────────────────────────────
+
+function renderChatPersonaList() {
+  const list = document.getElementById('chat-persona-list');
+  list.innerHTML = personas.map(p => `
+    <button onclick="selectChatPersona('${p.id}')" 
+      class="w-full flex items-center gap-2 p-2.5 rounded-lg text-left hover:bg-gray-100 transition ${selectedChatPersona?.id === p.id ? 'bg-brand-50 border border-brand-200' : ''}"
+      data-chat-persona="${p.id}">
+      <div class="w-8 h-8 gradient-bg rounded-full flex items-center justify-center text-white text-xs font-bold">${p.name.charAt(4)}</div>
+      <div class="min-w-0">
+        <div class="text-sm font-medium text-gray-900 truncate">${p.name}</div>
+        <div class="text-xs text-gray-400">${p.age_range}</div>
+      </div>
+    </button>
+  `).join('');
+}
+
+function selectChatPersona(id) {
+  selectedChatPersona = personas.find(p => p.id === id);
+  if (!selectedChatPersona) return;
+  
+  chatHistory = [];
+  renderChatPersonaList();
+  
+  document.getElementById('chat-persona-name').textContent = selectedChatPersona.name;
+  document.getElementById('chat-persona-desc').textContent = `${selectedChatPersona.age_range} · ${selectedChatPersona.sentiment}`;
+  
+  const msgs = document.getElementById('chat-messages');
+  msgs.innerHTML = `
+    <div class="chat-bubble-persona px-4 py-3 max-w-md fade-in">
+      <p class="text-sm">Hi! I'm ${selectedChatPersona.name}. I'm a ${selectedChatPersona.age_range} year old customer of ${currentBusiness.name}. Ask me anything about my experience!</p>
+    </div>
+  `;
+}
+
+async function sendMessage() {
+  if (!selectedChatPersona || !currentBusiness) return;
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  
+  const msgs = document.getElementById('chat-messages');
+  
+  // Add user message
+  msgs.innerHTML += `<div class="flex justify-end fade-in"><div class="chat-bubble-user px-4 py-3 max-w-md"><p class="text-sm">${text}</p></div></div>`;
+  
+  chatHistory.push({ role: 'user', content: text });
+  
+  // Typing indicator
+  msgs.innerHTML += `<div id="typing" class="flex gap-1 px-4 py-3 fade-in"><div class="w-2 h-2 bg-gray-300 rounded-full animate-bounce" style="animation-delay:0ms"></div><div class="w-2 h-2 bg-gray-300 rounded-full animate-bounce" style="animation-delay:150ms"></div><div class="w-2 h-2 bg-gray-300 rounded-full animate-bounce" style="animation-delay:300ms"></div></div>`;
+  msgs.scrollTop = msgs.scrollHeight;
+  
+  try {
+    const resp = await fetch(`${API}/businesses/${currentBusiness.id}/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        business_id: currentBusiness.id,
+        persona_id: selectedChatPersona.id,
+        message: text,
+        history: chatHistory,
+      })
+    });
+    const data = await resp.json();
+    
+    document.getElementById('typing')?.remove();
+    
+    chatHistory.push({ role: 'persona', content: data.response });
+    
+    msgs.innerHTML += `<div class="chat-bubble-persona px-4 py-3 max-w-md fade-in"><p class="text-sm">${data.response}</p></div>`;
+  } catch(e) {
+    document.getElementById('typing')?.remove();
+    msgs.innerHTML += `<div class="chat-bubble-persona px-4 py-3 max-w-md fade-in"><p class="text-sm text-red-500">⚠️ API error. Set GEMINI_API_KEY for live responses.</p></div>`;
+  }
+  
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function sendSuggestion(text) {
+  document.getElementById('chat-input').value = text;
+  sendMessage();
+}
+
+// ─── Insights ────────────────────────────────────────────────────────────────
+
+function renderInsights(filter = 'all') {
+  const filtered = filter === 'all' ? insights : insights.filter(i => i.category === filter);
+  const list = document.getElementById('insights-list');
+  
+  const categoryIcons = { pricing: '💰', service: '🤝', operations: '⚙️', marketing: '📣', product: '📦' };
+  const impactColors = { high: 'bg-red-100 text-red-700', medium: 'bg-yellow-100 text-yellow-700', low: 'bg-green-100 text-green-700' };
+  
+  list.innerHTML = filtered.sort((a, b) => b.priority_score - a.priority_score).map(ins => `
+    <div class="bg-white rounded-2xl p-6 shadow-sm card-hover fade-in">
+      <div class="flex items-start gap-4">
+        <div class="text-3xl">${categoryIcons[ins.category] || '💡'}</div>
+        <div class="flex-1">
+          <div class="flex items-center gap-2 mb-1">
+            <h4 class="font-semibold text-gray-900">${ins.title}</h4>
+            <span class="text-xs px-2 py-0.5 rounded-full ${impactColors[ins.impact]}">${ins.impact} impact</span>
+            <span class="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">${ins.effort} effort</span>
+          </div>
+          <p class="text-sm text-gray-600 leading-relaxed">${ins.description}</p>
+        </div>
+        <div class="text-right">
+          <div class="text-2xl font-bold gradient-text">${ins.priority_score}</div>
+          <div class="text-xs text-gray-400">priority</div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function filterInsights(category) {
+  renderInsights(category);
+  // Update button styles
+  document.querySelectorAll('#tab-insights button[onclick^="filterInsights"]').forEach(btn => {
+    btn.className = btn.textContent.trim().toLowerCase() === category || category === 'all' && btn.textContent.trim() === 'All'
+      ? 'text-xs px-3 py-1.5 rounded-full bg-brand-100 text-brand-700 font-medium'
+      : 'text-xs px-3 py-1.5 rounded-full bg-gray-100 text-gray-600 font-medium hover:bg-gray-200';
+  });
+}
+
+// ─── Reviews ─────────────────────────────────────────────────────────────────
+
+function renderReviews(filter = 'all') {
+  const filtered = filter === 'all' ? reviews : reviews.filter(r => {
+    if (filter === 'positive') return r.sentiment_score > 0.3;
+    if (filter === 'negative') return r.sentiment_score < -0.3;
+    return r.sentiment_score >= -0.3 && r.sentiment_score <= 0.3;
+  });
+  
+  const list = document.getElementById('reviews-list');
+  list.innerHTML = filtered.map(r => `
+    <div class="bg-white rounded-xl p-5 shadow-sm ${r.sentiment_score > 0.3 ? 'sentiment-positive' : r.sentiment_score < -0.3 ? 'sentiment-negative' : 'sentiment-mixed'}">
+      <div class="flex items-center justify-between mb-2">
+        <div class="flex items-center gap-2">
+          <span class="font-semibold text-gray-900 text-sm">${r.author}</span>
+          <span class="text-yellow-400">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-xs px-2 py-0.5 rounded-full ${r.sentiment_score > 0.3 ? 'bg-green-100 text-green-700' : r.sentiment_score < -0.3 ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'}">${r.sentiment_label}</span>
+          <span class="text-xs text-gray-400">${r.date}</span>
+        </div>
+      </div>
+      <p class="text-sm text-gray-700 leading-relaxed">${r.text}</p>
+    </div>
+  `).join('');
+}
+
+function filterReviews(filter) { renderReviews(filter); }
+
+// ─── Tabs ────────────────────────────────────────────────────────────────────
+
+function switchTab(tab) {
+  document.querySelectorAll('[id^="tab-"]').forEach(el => el.classList.add('hidden'));
+  document.getElementById(`tab-${tab}`).classList.remove('hidden');
+  
+  document.querySelectorAll('#tabs button').forEach(btn => {
+    btn.classList.toggle('tab-active', btn.dataset.tab === tab);
+  });
+}
+
+// ─── Add Business ────────────────────────────────────────────────────────────
+
+function showAddBusiness() { document.getElementById('add-business-modal').classList.remove('hidden'); }
+function closeAddBusiness() { document.getElementById('add-business-modal').classList.add('hidden'); }
+
+async function addBusiness() {
+  const name = document.getElementById('new-biz-name').value.trim();
+  if (!name) return alert('Business name is required');
+  
+  const resp = await fetch(`${API}/businesses`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      name,
+      address: document.getElementById('new-biz-address').value,
+      category: document.getElementById('new-biz-category').value,
+    })
+  });
+  const data = await resp.json();
+  closeAddBusiness();
+  
+  // Refresh
+  const bizResp = await fetch(`${API}/businesses`);
+  businesses = await bizResp.json();
+  renderBusinessSelector();
+  selectBusiness(data.id);
+}
+
+// ─── Boot ────────────────────────────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>

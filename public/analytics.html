@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics - Simon AI</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #7c3aed; --primary-dark: #6d28d9; --sidebar: #1e1b4b; --bg: #f8fafc; --card: #fff; --text: #1e293b; --text-muted: #64748b; --success: #10b981; --warning: #f59e0b; --danger: #ef4444; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { display: flex; min-height: 100vh; background: var(--bg); color: var(--text); }
+        
+        /* Sidebar */
+        .sidebar { width: 240px; background: var(--sidebar); color: #fff; padding: 20px; display: flex; flex-direction: column; }
+        .logo { font-size: 24px; font-weight: 700; margin-bottom: 40px; display: flex; align-items: center; gap: 10px; }
+        .logo span { color: var(--primary); }
+        .nav-item { padding: 12px 16px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 12px; margin-bottom: 4px; transition: 0.2s; color: #a5b4fc; }
+        .nav-item:hover, .nav-item.active { background: var(--primary); color: #fff; }
+        
+        /* Main Content */
+        .main { flex: 1; padding: 24px; overflow-y: auto; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; background: var(--card); padding: 16px 24px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .header h1 { font-size: 20px; font-weight: 600; }
+        .header-actions { display: flex; gap: 12px; align-items: center; }
+        select, .btn { padding: 10px 16px; border-radius: 8px; border: 1px solid #e2e8f0; font-size: 14px; cursor: pointer; }
+        .btn { background: var(--primary); color: #fff; border: none; font-weight: 500; }
+        .btn:hover { background: var(--primary-dark); }
+        
+        /* KPI Cards */
+        .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 24px; }
+        .kpi-card { background: var(--card); padding: 20px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .kpi-label { font-size: 13px; color: var(--text-muted); margin-bottom: 8px; }
+        .kpi-value { font-size: 28px; font-weight: 700; }
+        .kpi-change { font-size: 13px; margin-top: 4px; }
+        .kpi-change.positive { color: var(--success); }
+        .kpi-change.negative { color: var(--danger); }
+        .stars { color: #fbbf24; font-size: 18px; }
+        
+        /* Sentiment Score */
+        .sentiment-score { display: inline-block; padding: 4px 12px; border-radius: 20px; font-weight: 600; font-size: 14px; }
+        .sentiment-high { background: #d1fae5; color: #065f46; }
+        .sentiment-medium { background: #fef3c7; color: #92400e; }
+        .sentiment-low { background: #fee2e2; color: #991b1b; }
+        
+        /* Charts Grid */
+        .charts-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-bottom: 24px; }
+        .chart-card { background: var(--card); padding: 20px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .chart-card h3 { font-size: 16px; font-weight: 600; margin-bottom: 16px; }
+        .chart-container { height: 250px; position: relative; }
+        
+        /* Keywords */
+        .keywords-section { background: var(--card); padding: 20px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 24px; }
+        .keywords-section h3 { font-size: 16px; font-weight: 600; margin-bottom: 16px; }
+        .keywords-cloud { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+        .keyword { padding: 6px 14px; border-radius: 20px; font-weight: 500; transition: transform 0.2s; cursor: default; }
+        .keyword:hover { transform: scale(1.1); }
+        .keyword.positive { background: #d1fae5; color: #065f46; }
+        .keyword.negative { background: #fee2e2; color: #991b1b; }
+        .keyword.neutral { background: #f1f5f9; color: #475569; }
+        
+        /* Competitor Table */
+        .competitor-section { background: var(--card); padding: 20px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 24px; }
+        .competitor-section h3 { font-size: 16px; font-weight: 600; margin-bottom: 16px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+        th { font-weight: 600; color: var(--text-muted); font-size: 13px; }
+        .competitor-name { font-weight: 600; }
+        .your-business { background: #f5f3ff; }
+        
+        /* Recommendations */
+        .recommendations { background: var(--card); padding: 20px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 24px; }
+        .recommendations h3 { font-size: 16px; font-weight: 600; margin-bottom: 16px; }
+        .rec-item { display: flex; gap: 16px; padding: 16px; border: 1px solid #e2e8f0; border-radius: 10px; margin-bottom: 12px; }
+        .rec-number { width: 32px; height: 32px; background: var(--primary); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; flex-shrink: 0; }
+        .rec-content { flex: 1; }
+        .rec-title { font-weight: 600; margin-bottom: 4px; }
+        .rec-desc { font-size: 14px; color: var(--text-muted); margin-bottom: 8px; }
+        .rec-meta { display: flex; gap: 16px; font-size: 13px; }
+        .rec-priority { color: var(--primary); font-weight: 500; }
+        .rec-impact { color: var(--success); font-weight: 500; }
+        
+        /* Loading */
+        .loading { text-align: center; padding: 40px; color: var(--text-muted); }
+    </style>
+</head>
+<body>
+    <nav class="sidebar">
+        <div class="logo">⚡ Simon<span>AI</span></div>
+        <div class="nav-item">📊 Dashboard</div>
+        <div class="nav-item">📈 Analytics</div>
+        <div class="nav-item active">🎯 Insights</div>
+        <div class="nav-item">💬 Reviews</div>
+        <div class="nav-item">👥 Customers</div>
+        <div class="nav-item">⚙️ Settings</div>
+    </nav>
+    
+    <main class="main">
+        <header class="header">
+            <h1>Analytics Dashboard</h1>
+            <div class="header-actions">
+                <select id="businessSelector">
+                    <option value="1">Your Business</option>
+                    <option value="2">Coffee Corner</option>
+                    <option value="3">Tech Solutions</option>
+                </select>
+                <button class="btn" id="exportBtn">📄 Export PDF</button>
+            </div>
+        </header>
+        
+        <div id="content">
+            <div class="loading">Loading analytics...</div>
+        </div>
+    </main>
+
+    <script>
+        const DEMO_DATA = {
+            kpis: { totalReviews: 1247, avgRating: 4.3, sentimentScore: 78, reviewGrowth: 12.5 },
+            ratingDistribution: [45, 89, 156, 423, 534],
+            sentimentOverTime: [72, 75, 71, 78, 82, 79],
+            reviewVolume: [156, 189, 234, 198, 267, 203],
+            personas: [{name: 'Satisfied Customer', value: 45}, {name: 'Loyal Fan', value: 28}, {name: 'First-time Buyer', value: 15}, {name: 'Dissatisfied', value: 8}, {name: 'Detractor', value: 4}],
+            keywords: [
+                {word: 'excellent', count: 234, sentiment: 'positive'}, {word: 'friendly', count: 189, sentiment: 'positive'}, {word: 'quick', count: 156, sentiment: 'positive'},
+                {word: 'great service', count: 145, sentiment: 'positive'}, {word: 'quality', count: 132, sentiment: 'positive'}, {word: 'recommend', count: 128, sentiment: 'positive'},
+                {word: 'amazing', count: 112, sentiment: 'positive'}, {word: 'professional', count: 98, sentiment: 'positive'}, {word: 'slow', count: 87, sentiment: 'negative'},
+                {word: 'expensive', count: 76, sentiment: 'negative'}, {word: 'wait', count: 65, sentiment: 'negative'}, {word: 'rude', count: 54, sentiment: 'negative'},
+                {word: 'ok', count: 145, sentiment: 'neutral'}, {word: 'average', count: 89, sentiment: 'neutral'}, {word: 'decent', count: 78, sentiment: 'neutral'},
+                {word: 'fair', count: 56, sentiment: 'neutral'}, {word: 'normal', count: 45, sentiment: 'neutral'}, {word: 'okay', count: 67, sentiment: 'neutral'},
+                {word: 'helpful', count: 112, sentiment: 'positive'}, {word: 'clean', count: 98, sentiment: 'positive'}
+            ],
+            competitors: [
+                {name: 'Your Business', avgRating: 4.3, reviewCount: 1247, sentiment: 78, topComplaints: ['Wait time', 'Pricing']},
+                {name: 'Competitor A', avgRating: 4.1, reviewCount: 892, sentiment: 72, topComplaints: ['Staff', 'Location']},
+                {name: 'Competitor B', avgRating: 4.5, reviewCount: 2103, sentiment: 85, topComplaints: ['Parking', 'Noise']}
+            ],
+            recommendations: [
+                {title: 'Reduce Wait Times', desc: 'Implement virtual queue system to decrease average wait time by 40%', priority: 92, impact: '+15% retention'},
+                {title: 'Staff Training', desc: 'Launch customer service training program focusing on friendliness', priority: 85, impact: '+12% sentiment'},
+                {title: 'Value Packages', desc: 'Introduce bundled pricing to address "expensive" complaints', priority: 78, impact: '+8% conversion'}
+            ]
+        };
+
+        let charts = {};
+        
+        async function fetchAnalytics(businessId) {
+            try {
+                const res = await fetch(`http://localhost:8000/api/businesses/${businessId}/analytics`);
+                if (!res.ok) throw new Error('API unavailable');
+                return await res.json();
+            } catch {
+                return DEMO_DATA;
+            }
+        }
+
+        function getSentimentClass(score) {
+            if (score >= 70) return 'sentiment-high';
+            if (score >= 50) return 'sentiment-medium';
+            return 'sentiment-low';
+        }
+
+        function getSentimentLabel(score) {
+            if (score >= 70) return 'Excellent';
+            if (score >= 50) return 'Good';
+            return 'Needs Work';
+        }
+
+        function renderKPIs(kpis) {
+            const stars = '★'.repeat(Math.floor(kpis.avgRating)) + '☆'.repeat(5 - Math.floor(kpis.avgRating));
+            const sentimentClass = getSentimentClass(kpis.sentimentScore);
+            return `
+                <div class="kpi-row">
+                    <div class="kpi-card">
+                        <div class="kpi-label">Total Reviews</div>
+                        <div class="kpi-value">${kpis.totalReviews.toLocaleString()}</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-label">Average Rating</div>
+                        <div class="kpi-value">${kpis.avgRating}<span class="stars">${stars}</span></div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-label">Sentiment Score</div>
+                        <div class="kpi-value">${kpis.sentimentScore}<span class="sentiment-score ${sentimentClass}">${getSentimentLabel(kpis.sentimentScore)}</span></div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-label">Review Growth</div>
+                        <div class="kpi-value">+${kpis.reviewGrowth}%</div>
+                        <div class="kpi-change positive">↑ vs last month</div>
+                    </div>
+                </div>`;
+        }
+
+        function renderCharts(data) {
+            return `
+                <div class="charts-grid">
+                    <div class="chart-card">
+                        <h3>Rating Distribution</h3>
+                        <div class="chart-container"><canvas id="ratingChart"></canvas></div>
+                    </div>
+                    <div class="chart-card">
+                        <h3>Sentiment Over Time</h3>
+                        <div class="chart-container"><canvas id="sentimentChart"></canvas></div>
+                    </div>
+                    <div class="chart-card">
+                        <h3>Review Volume by Month</h3>
+                        <div class="chart-container"><canvas id="volumeChart"></canvas></div>
+                    </div>
+                    <div class="chart-card">
+                        <h3>Persona Distribution</h3>
+                        <div class="chart-container"><canvas id="personaChart"></canvas></div>
+                    </div>
+                </div>`;
+        }
+
+        function renderKeywords(keywords) {
+            const maxCount = Math.max(...keywords.map(k => k.count));
+            return `
+                <div class="keywords-section">
+                    <h3>Top Keywords</h3>
+                    <div class="keywords-cloud">
+                        ${keywords.map(k => {
+                            const size = 14 + (k.count / maxCount) * 16;
+                            return `<span class="keyword ${k.sentiment}" style="font-size:${size}px">${k.word}</span>`;
+                        }).join('')}
+                    </div>
+                </div>`;
+        }
+
+        function renderCompetitors(competitors) {
+            return `
+                <div class="competitor-section">
+                    <h3>Competitor Comparison</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Business</th>
+                                <th>Avg Rating</th>
+                                <th>Review Count</th>
+                                <th>Sentiment</th>
+                                <th>Top Complaints</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${competitors.map((c, i) => `
+                                <tr class="${i === 0 ? 'your-business' : ''}">
+                                    <td class="competitor-name">${c.name}</td>
+                                    <td>${c.avgRating} ⭐</td>
+                                    <td>${c.reviewCount.toLocaleString()}</td>
+                                    <td><span class="sentiment-score ${getSentimentClass(c.sentiment)}">${c.sentiment}%</span></td>
+                                    <td>${c.topComplaints.join(', ')}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>`;
+        }
+
+        function renderRecommendations(recs) {
+            return `
+                <div class="recommendations">
+                    <h3>Actionable Recommendations</h3>
+                    ${recs.map((r, i) => `
+                        <div class="rec-item">
+                            <div class="rec-number">${i + 1}</div>
+                            <div class="rec-content">
+                                <div class="rec-title">${r.title}</div>
+                                <div class="rec-desc">${r.desc}</div>
+                                <div class="rec-meta">
+                                    <span class="rec-priority">Priority: ${r.priority}/100</span>
+                                    <span class="rec-impact">${r.impact}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>`;
+        }
+
+        function initCharts(data) {
+            Object.values(charts).forEach(c => c.destroy());
+            
+            const chartOptions = { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } };
+            const colors = { primary: '#7c3aed', primaryLight: '#a78bfa', success: '#10b981', warning: '#f59e0b', danger: '#ef4444', gray: '#94a3b8' };
+            
+            charts.rating = new Chart(document.getElementById('ratingChart'), {
+                type: 'bar',
+                data: { labels: ['1★', '2★', '3★', '4★', '5★'], datasets: [{ data: data.ratingDistribution, backgroundColor: [colors.danger, colors.warning, colors.gray, colors.primaryLight, colors.primary], borderRadius: 6 }] },
+                options: chartOptions
+            });
+
+            charts.sentiment = new Chart(document.getElementById('sentimentChart'), {
+                type: 'line',
+                data: { labels: ['Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb'], datasets: [{ data: data.sentimentOverTime, borderColor: colors.primary, backgroundColor: 'rgba(124, 58, 237, 0.1)', fill: true, tension: 0.4 }] },
+                options: { ...chartOptions, scales: { y: { min: 0, max: 100 } } }
+            });
+
+            charts.volume = new Chart(document.getElementById('volumeChart'), {
+                type: 'bar',
+                data: { labels: ['Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb'], datasets: [{ data: data.reviewVolume, backgroundColor: colors.primary, borderRadius: 6 }] },
+                options: chartOptions
+            });
+
+            charts.persona = new Chart(document.getElementById('personaChart'), {
+                type: 'doughnut',
+                data: { labels: data.personas.map(p => p.name), datasets: [{ data: data.personas.map(p => p.value), backgroundColor: [colors.primary, colors.success, colors.warning, colors.danger, colors.gray] }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } } }
+            });
+        }
+
+        async function loadDashboard() {
+            const businessId = document.getElementById('businessSelector').value;
+            const data = await fetchAnalytics(businessId);
+            
+            document.getElementById('content').innerHTML = 
+                renderKPIs(data.kpis) + 
+                renderCharts(data) + 
+                renderKeywords(data.keywords) + 
+                renderCompetitors(data.competitors) + 
+                renderRecommendations(data.recommendations);
+            
+            initCharts(data);
+        }
+
+        document.getElementById('businessSelector').addEventListener('change', loadDashboard);
+        document.getElementById('exportBtn').addEventListener('click', () => alert('PDF export coming soon!'));
+        
+        loadDashboard();
+    </script>
+</body>
+</html>
