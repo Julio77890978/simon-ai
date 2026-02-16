@@ -1,718 +1,268 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Simon AI — Customer Intelligence for SMEs</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-<script>
-tailwind.config = {
-  theme: {
-    extend: {
-      fontFamily: { sans: ['Inter', 'sans-serif'] },
-      colors: {
-        brand: { 50:'#f0f4ff', 100:'#dbe4ff', 200:'#bac8ff', 300:'#91a7ff', 400:'#748ffc', 500:'#5c7cfa', 600:'#4c6ef5', 700:'#4263eb', 800:'#3b5bdb', 900:'#364fc7' },
-      }
-    }
-  }
-}
-</script>
-<style>
-* { font-family: 'Inter', sans-serif; }
-.glass { background: rgba(255,255,255,0.7); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.3); }
-.card-hover { transition: all 0.3s cubic-bezier(0.4,0,0.2,1); }
-.card-hover:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(0,0,0,0.08); }
-.gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-.gradient-text { background: linear-gradient(135deg, #4c6ef5, #7c3aed); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-.sentiment-positive { border-left: 4px solid #22c55e; }
-.sentiment-negative { border-left: 4px solid #ef4444; }
-.sentiment-mixed { border-left: 4px solid #f59e0b; }
-.chat-bubble-user { background: linear-gradient(135deg, #4c6ef5, #7c3aed); color: white; border-radius: 20px 20px 4px 20px; }
-.chat-bubble-persona { background: #f1f3f5; color: #1a1a2e; border-radius: 20px 20px 20px 4px; }
-.fade-in { animation: fadeIn 0.5s ease-out; }
-@keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
-.pulse-dot { animation: pulse 2s infinite; }
-@keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.5; } }
-.tab-active { border-bottom: 3px solid #4c6ef5; color: #4c6ef5; font-weight: 600; }
-.persona-ring { box-shadow: 0 0 0 3px #4c6ef5, 0 0 0 6px rgba(76,110,245,0.2); }
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simon AI — Customer Intelligence for SMEs</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    :root{--primary:#6366f1;--primary-dark:#4f46e5;--accent:#22d3ee;--dark:#0f172a;--light:#f8fafc;--glass:rgba(255,255,255,0.08);--border:rgba(255,255,255,0.12)}
+    body{font-family:'Inter',sans-serif;background:var(--dark);color:var(--light);line-height:1.6;overflow-x:hidden}
+    .gradient{position:fixed;inset:0;background:linear-gradient(135deg,#0f172a 0%,#1e1b4b 50%,#0f172a 100%);z-index:-1}
+    .gradient::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 50% at 50% -20%,rgba(99,102,241,0.3),transparent)}
+    .gradient::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 40% at 80% 100%,rgba(34,211,238,0.15),transparent)}
+    .container{max-width:1200px;margin:0 auto;padding:0 24px}
+    header{padding:20px 0;position:fixed;width:100%;top:0;z-index:100;backdrop-filter:blur(12px);background:rgba(15,23,42,0.8);border-bottom:1px solid var(--border)}
+    header .container{display:flex;justify-content:space-between;align-items:center}
+    .logo{font-weight:700;font-size:24px;background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+    nav a{color:var(--light);text-decoration:none;margin-left:32px;font-size:14px;opacity:0.8;transition:opacity 0.3s}
+    nav a:hover{opacity:1}
+    .btn{display:inline-flex;align-items:center;padding:12px 24px;border-radius:8px;font-weight:600;font-size:14px;cursor:pointer;transition:all 0.3s;border:none}
+    .btn-primary{background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;box-shadow:0 4px 20px rgba(99,102,241,0.4)}
+    .btn-primary:hover{transform:translateY(-2px);box-shadow:0 6px 30px rgba(99,102,241,0.5)}
+    .btn-ghost{background:var(--glass);border:1px solid var(--border);color:#fff}
+    .btn-ghost:hover{background:rgba(255,255,255,0.12)}
+    .hero{padding:180px 0 120px;text-align:center;animation:fadeIn 1s ease}
+    .hero h1{font-size:56px;font-weight:700;line-height:1.1;margin-bottom:24px;background:linear-gradient(135deg,#fff 0%,rgba(255,255,255,0.7) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+    .hero p{font-size:20px;opacity:0.7;max-width:600px;margin:0 auto 40px}
+    .hero-btns{display:flex;gap:16px;justify-content:center}
+    .hero-btns .btn{font-size:16px;padding:16px 32px}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+    section{padding:100px 0}
+    .section-title{text-align:center;margin-bottom:60px}
+    .section-title h2{font-size:40px;font-weight:700;margin-bottom:16px}
+    .section-title p{font-size:18px;opacity:0.6;max-width:500px;margin:0 auto}
+    .features-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px}
+    .feature-card{background:var(--glass);border:1px solid var(--border);border-radius:16px;padding:32px;transition:all 0.4s;animation:fadeIn 0.6s ease backwards}
+    .feature-card:nth-child(1){animation-delay:0.1s}.feature-card:nth-child(2){animation-delay:0.2s}.feature-card:nth-child(3){animation-delay:0.3s}.feature-card:nth-child(4){animation-delay:0.4s}
+    .feature-card:hover{transform:translateY(-8px);border-color:var(--primary);box-shadow:0 20px 40px rgba(99,102,241,0.15)}
+    .feature-icon{width:56px;height:56px;background:linear-gradient(135deg,var(--primary),var(--accent));border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:20px}
+    .feature-card h3{font-size:20px;margin-bottom:12px}
+    .feature-card p{opacity:0.6;font-size:15px}
+    .pricing-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px;max-width:1000px;margin:0 auto}
+    .pricing-card{background:var(--glass);border:1px solid var(--border);border-radius:16px;padding:40px;text-align:center;transition:all 0.3s;position:relative}
+    .pricing-card:hover{transform:translateY(-8px);border-color:var(--primary)}
+    .pricing-card.popular{background:linear-gradient(135deg,rgba(99,102,241,0.2),rgba(34,211,238,0.1));border-color:var(--primary)}
+    .pricing-card .badge{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,var(--primary),var(--accent));padding:6px 16px;border-radius:20px;font-size:12px;font-weight:600}
+    .pricing-card h3{font-size:24px;margin-bottom:8px}
+    .price{font-size:48px;font-weight:700;margin:20px 0}
+    .price span{font-size:16px;font-weight:400;opacity:0.6}
+    .pricing-card ul{list-style:none;margin:24px 0;text-align:left}
+    .pricing-card li{padding:10px 0;border-bottom:1px solid var(--border);font-size:14px;display:flex;align-items:center;gap:10px}
+    .pricing-card li::before{content:'✓';color:var(--accent)}
+    .pricing-card .btn{width:100%;justify-content:center;margin-top:20px}
+    .testimonials{background:rgba(255,255,255,0.02)}
+    .testimonials-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:24px}
+    .testimonial-card{background:var(--glass);border:1px solid var(--border);border-radius:16px;padding:32px}
+    .testimonial-card p{font-size:16px;margin-bottom:20px;line-height:1.7}
+    .testimonial-author{display:flex;align-items:center;gap:12px}
+    .testimonial-avatar{width:48px;height:48px;background:linear-gradient(135deg,var(--primary),var(--accent));border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600}
+    .testimonial-info h4{font-size:14px;font-weight:600}
+    .testimonial-info span{font-size:12px;opacity:0.6}
+    .faq{max-width:700px;margin:0 auto}
+    .faq-item{background:var(--glass);border:1px solid var(--border);border-radius:12px;margin-bottom:12px;overflow:hidden}
+    .faq-question{padding:20px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-weight:500}
+    .faq-answer{padding:0 20px 20px;font-size:14px;opacity:0.7;display:none}
+    .faq-item.active .faq-answer{display:block}
+    .cta{text-align:center;background:linear-gradient(135deg,rgba(99,102,241,0.2),rgba(34,211,238,0.1));border-radius:24px;margin:40px auto;padding:80px 40px}
+    .cta h2{font-size:40px;margin-bottom:16px}
+    .cta p{font-size:18px;opacity:0.7;margin-bottom:32px}
+    footer{border-top:1px solid var(--border);padding:40px 0;text-align:center;opacity:0.5;font-size:14px}
+    @media(max-width:768px){.hero h1{font-size:36px}.hero p{font-size:16px}.section-title h2{font-size:28px}.pricing-grid{grid-template-columns:1fr}}
+  </style>
 </head>
-<body class="bg-gray-50 min-h-screen">
+<body>
+  <div class="gradient"></div>
+  <header>
+    <div class="container">
+      <div class="logo">Simon AI</div>
+      <nav>
+        <a href="#features">Features</a>
+        <a href="#pricing">Pricing</a>
+        <a href="#testimonials">Testimonials</a>
+        <a href="app.html" class="btn btn-primary" style="margin-left:24px;padding:10px 20px">Get Started</a>
+      </nav>
+    </div>
+  </header>
 
-<!-- Navigation -->
-<nav class="bg-white border-b border-gray-200 sticky top-0 z-50">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="flex items-center justify-between h-16">
-      <div class="flex items-center gap-3">
-        <div class="w-9 h-9 gradient-bg rounded-xl flex items-center justify-center">
-          <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-        </div>
-        <span class="text-xl font-bold gradient-text">Simon AI</span>
-        <span class="text-xs bg-brand-100 text-brand-700 px-2 py-0.5 rounded-full font-medium">BETA</span>
-      </div>
-      
-      <div class="flex items-center gap-2" id="business-selector">
-        <!-- Populated dynamically -->
-      </div>
-      
-      <div class="flex items-center gap-3">
-        <button onclick="showAddBusiness()" class="text-sm bg-brand-600 text-white px-4 py-2 rounded-lg hover:bg-brand-700 transition font-medium">+ Add Business</button>
-        <div class="w-8 h-8 bg-brand-100 rounded-full flex items-center justify-center">
-          <span class="text-brand-700 font-semibold text-sm">M</span>
-        </div>
+  <section class="hero">
+    <div class="container">
+      <h1>Talk to Your Customers —<br>Without Talking to Them</h1>
+      <p>AI-powered customer intelligence that extracts insights from reviews, social media, and feedback. Know what your customers think, instantly.</p>
+      <div class="hero-btns">
+        <a href="app.html" class="btn btn-primary">Start Free Trial</a>
+        <a href="#features" class="btn btn-ghost">See How It Works</a>
       </div>
     </div>
-  </div>
-</nav>
+  </section>
 
-<!-- Tabs -->
-<div class="bg-white border-b">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="flex gap-8" id="tabs">
-      <button onclick="switchTab('dashboard')" class="py-3 text-sm font-medium text-gray-500 hover:text-gray-700 border-b-3 border-transparent tab-active" data-tab="dashboard">
-        📊 Dashboard
-      </button>
-      <button onclick="switchTab('personas')" class="py-3 text-sm font-medium text-gray-500 hover:text-gray-700 border-b-3 border-transparent" data-tab="personas">
-        👥 Personas
-      </button>
-      <button onclick="switchTab('chat')" class="py-3 text-sm font-medium text-gray-500 hover:text-gray-700 border-b-3 border-transparent" data-tab="chat">
-        💬 Chat Simulator
-      </button>
-      <button onclick="switchTab('insights')" class="py-3 text-sm font-medium text-gray-500 hover:text-gray-700 border-b-3 border-transparent" data-tab="insights">
-        💡 Insights
-      </button>
-      <button onclick="switchTab('reviews')" class="py-3 text-sm font-medium text-gray-500 hover:text-gray-700 border-b-3 border-transparent" data-tab="reviews">
-        ⭐ Reviews
-      </button>
+  <section id="features">
+    <div class="container">
+      <div class="section-title">
+        <h2>Everything You Need to Know Your Customers</h2>
+        <p>Powerful AI tools designed specifically for small and medium businesses</p>
+      </div>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">📊</div>
+          <h3>Review Analysis</h3>
+          <p>Automatically analyze reviews from Google, Yelp, TripAdvisor, and more. Sentiment analysis, trend detection, and keyword extraction in seconds.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">👤</div>
+          <h3>AI Persona Generation</h3>
+          <p>Build detailed customer personas from real data. Understand demographics, preferences, pain points, and buying behaviors automatically.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">💬</div>
+          <h3>Chat Simulator</h3>
+          <p>Test your marketing messages and product ideas with AI-generated customers that behave like your real audience.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">💡</div>
+          <h3>Actionable Insights</h3>
+          <p>Get concrete recommendations on what to fix, what to promote, and how to improve customer satisfaction based on data.</p>
+        </div>
+      </div>
     </div>
-  </div>
-</div>
+  </section>
 
-<!-- Main Content -->
-<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-  
-  <!-- Dashboard Tab -->
-  <div id="tab-dashboard" class="fade-in">
-    <!-- KPI Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-      <div class="bg-white rounded-2xl p-6 card-hover shadow-sm">
-        <div class="flex items-center justify-between mb-2">
-          <span class="text-sm text-gray-500 font-medium">Total Reviews</span>
-          <span class="text-2xl">📝</span>
-        </div>
-        <div class="text-3xl font-bold text-gray-900" id="kpi-reviews">—</div>
-        <div class="text-xs text-green-600 mt-1">+12% this month</div>
+  <section id="pricing">
+    <div class="container">
+      <div class="section-title">
+        <h2>Simple, Transparent Pricing</h2>
+        <p>Start free, upgrade when you need more</p>
       </div>
-      <div class="bg-white rounded-2xl p-6 card-hover shadow-sm">
-        <div class="flex items-center justify-between mb-2">
-          <span class="text-sm text-gray-500 font-medium">Avg Rating</span>
-          <span class="text-2xl">⭐</span>
+      <div class="pricing-grid">
+        <div class="pricing-card">
+          <h3>Free</h3>
+          <div class="price">$0<span>/mo</span></div>
+          <ul>
+            <li>1 business</li>
+            <li>50 reviews/month</li>
+            <li>Basic analytics</li>
+            <li>Email support</li>
+          </ul>
+          <a href="app.html" class="btn btn-ghost">Get Started</a>
         </div>
-        <div class="text-3xl font-bold text-gray-900" id="kpi-rating">—</div>
-        <div class="text-xs text-gray-500 mt-1">Industry avg: 4.1</div>
-      </div>
-      <div class="bg-white rounded-2xl p-6 card-hover shadow-sm">
-        <div class="flex items-center justify-between mb-2">
-          <span class="text-sm text-gray-500 font-medium">Customer Personas</span>
-          <span class="text-2xl">👥</span>
+        <div class="pricing-card popular">
+          <div class="badge">Most Popular</div>
+          <h3>Pro</h3>
+          <div class="price">$29<span>/mo</span></div>
+          <ul>
+            <li>5 businesses</li>
+            <li>Unlimited reviews</li>
+            <li>Advanced analytics</li>
+            <li>AI personas</li>
+            <li>Chat simulator</li>
+            <li>Priority support</li>
+          </ul>
+          <a href="app.html" class="btn btn-primary">Start Free Trial</a>
         </div>
-        <div class="text-3xl font-bold text-gray-900" id="kpi-personas">—</div>
-        <div class="text-xs text-brand-600 mt-1">AI-generated</div>
-      </div>
-      <div class="bg-white rounded-2xl p-6 card-hover shadow-sm">
-        <div class="flex items-center justify-between mb-2">
-          <span class="text-sm text-gray-500 font-medium">Sentiment Score</span>
-          <span class="text-2xl">😊</span>
+        <div class="pricing-card">
+          <h3>Agency</h3>
+          <div class="price">$99<span>/mo</span></div>
+          <ul>
+            <li>25 businesses</li>
+            <li>Unlimited reviews</li>
+            <li>White-label reports</li>
+            <li>API access</li>
+            <li>Dedicated account manager</li>
+            <li>Custom integrations</li>
+          </ul>
+          <a href="app.html" class="btn btn-ghost">Contact Sales</a>
         </div>
-        <div class="text-3xl font-bold text-gray-900" id="kpi-sentiment">—</div>
-        <div class="text-xs text-green-600 mt-1" id="kpi-sentiment-detail">—</div>
       </div>
     </div>
-    
-    <!-- Charts Row -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-      <div class="bg-white rounded-2xl p-6 shadow-sm">
-        <h3 class="font-semibold text-gray-900 mb-4">Rating Distribution</h3>
-        <canvas id="ratingChart" height="200"></canvas>
+  </section>
+
+  <section id="testimonials" class="testimonials">
+    <div class="container">
+      <div class="section-title">
+        <h2>Loved by SME Owners</h2>
+        <p>Join thousands of businesses already using Simon AI</p>
       </div>
-      <div class="bg-white rounded-2xl p-6 shadow-sm">
-        <h3 class="font-semibold text-gray-900 mb-4">Sentiment Breakdown</h3>
-        <canvas id="sentimentChart" height="200"></canvas>
-      </div>
-    </div>
-    
-    <!-- Persona Preview Cards -->
-    <h3 class="font-semibold text-gray-900 mb-4 text-lg">Top Customer Personas</h3>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="persona-preview-cards">
-      <!-- Populated dynamically -->
-    </div>
-  </div>
-  
-  <!-- Personas Tab -->
-  <div id="tab-personas" class="hidden fade-in">
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <div class="lg:col-span-1">
-        <h3 class="font-semibold text-gray-900 mb-4">Customer Segments</h3>
-        <div class="space-y-3" id="persona-list">
-          <!-- Populated dynamically -->
+      <div class="testimonials-grid">
+        <div class="testimonial-card">
+          <p>"Simon AI transformed how we understand our customers. We found issues we didn't know existed and fixed them before they became problems."</p>
+          <div class="testimonial-author">
+            <div class="testimonial-avatar">MR</div>
+            <div class="testimonial-info"><h4>Maria Rodriguez</h4><span>Owner, Bella Café</span></div>
+          </div>
         </div>
-      </div>
-      <div class="lg:col-span-2">
-        <div class="bg-white rounded-2xl p-8 shadow-sm" id="persona-detail">
-          <div class="text-center text-gray-400 py-12">
-            <span class="text-5xl mb-4 block">👤</span>
-            <p>Select a persona to view details</p>
+        <div class="testimonial-card">
+          <p>"The AI personas alone are worth the price. We now tailor our marketing to specific customer segments and saw a 40% increase in repeat visits."</p>
+          <div class="testimonial-author">
+            <div class="testimonial-avatar">JC</div>
+            <div class="testimonial-info"><h4>James Chen</h4><span>Founder, TechFix Solutions</span></div>
+          </div>
+        </div>
+        <div class="testimonial-card">
+          <p>"We manage 12 locations. Simon AI gives us a unified view of customer sentiment across all branches. Game changer for our franchise."</p>
+          <div class="testimonial-author">
+            <div class="testimonial-avatar">SK</div>
+            <div class="testimonial-info"><h4>Sarah Kim</h4><span>Director, QuickBite Restaurants</span></div>
           </div>
         </div>
       </div>
     </div>
-  </div>
-  
-  <!-- Chat Simulator Tab -->
-  <div id="tab-chat" class="hidden fade-in">
-    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-      <div class="lg:col-span-1">
-        <h3 class="font-semibold text-gray-900 mb-4">Talk to a Customer</h3>
-        <p class="text-sm text-gray-500 mb-4">Select a persona to start a simulated conversation. Ask them anything about their experience.</p>
-        <div class="space-y-2" id="chat-persona-list">
-          <!-- Populated dynamically -->
+  </section>
+
+  <section id="faq">
+    <div class="container">
+      <div class="section-title">
+        <h2>Frequently Asked Questions</h2>
+      </div>
+      <div class="faq">
+        <div class="faq-item">
+          <div class="faq-question">How does the free trial work? <span>▼</span></div>
+          <div class="faq-answer">Start with our Free plan forever, or try Pro features free for 14 days. No credit card required to start.</div>
         </div>
-        <div class="mt-4 p-3 bg-brand-50 rounded-xl">
-          <p class="text-xs text-brand-700 font-medium mb-2">💡 Try asking:</p>
-          <div class="space-y-1">
-            <button onclick="sendSuggestion('What would make you visit more often?')" class="text-xs text-brand-600 hover:text-brand-800 block w-full text-left">"What would make you visit more often?"</button>
-            <button onclick="sendSuggestion('How do you feel about our pricing?')" class="text-xs text-brand-600 hover:text-brand-800 block w-full text-left">"How do you feel about our pricing?"</button>
-            <button onclick="sendSuggestion('Would you recommend us to friends?')" class="text-xs text-brand-600 hover:text-brand-800 block w-full text-left">"Would you recommend us to friends?"</button>
-            <button onclick="sendSuggestion('What is your biggest frustration?')" class="text-xs text-brand-600 hover:text-brand-800 block w-full text-left">"What is your biggest frustration?"</button>
-          </div>
+        <div class="faq-item">
+          <div class="faq-question">What review sources do you support? <span>▼</span></div>
+          <div class="faq-answer">Google, Yelp, TripAdvisor, Facebook, Amazon, Trustpilot, and 50+ more platforms. We also support custom data imports.</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question">Can I upgrade or downgrade anytime? <span>▼</span></div>
+          <div class="faq-answer">Absolutely. Upgrade or downgrade your plan at any time. Changes take effect immediately with prorated billing.</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question">Is my data secure? <span>▼</span></div>
+          <div class="faq-answer">Yes. We use bank-level encryption, are SOC 2 compliant, and never share your data with third parties.</div>
         </div>
       </div>
-      <div class="lg:col-span-3">
-        <div class="bg-white rounded-2xl shadow-sm h-[600px] flex flex-col">
-          <!-- Chat Header -->
-          <div class="p-4 border-b flex items-center gap-3" id="chat-header">
-            <div class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-xl">👤</div>
-            <div>
-              <div class="font-semibold text-gray-900" id="chat-persona-name">Select a persona</div>
-              <div class="text-xs text-gray-500" id="chat-persona-desc">Choose from the list on the left</div>
-            </div>
-            <div class="ml-auto">
-              <span class="pulse-dot inline-block w-2 h-2 bg-green-400 rounded-full mr-1"></span>
-              <span class="text-xs text-gray-400">AI Simulated</span>
-            </div>
-          </div>
-          
-          <!-- Chat Messages -->
-          <div class="flex-1 overflow-y-auto p-4 space-y-4" id="chat-messages">
-            <div class="text-center text-gray-400 py-20">
-              <span class="text-5xl mb-4 block">💬</span>
-              <p>Select a persona and start chatting</p>
-              <p class="text-sm mt-2">Ask them about their experience, preferences, and feedback</p>
-            </div>
-          </div>
-          
-          <!-- Chat Input -->
-          <div class="p-4 border-t">
-            <div class="flex gap-2">
-              <input type="text" id="chat-input" placeholder="Ask your customer anything..." class="flex-1 px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent text-sm" onkeydown="if(event.key==='Enter')sendMessage()">
-              <button onclick="sendMessage()" class="px-6 py-3 bg-brand-600 text-white rounded-xl hover:bg-brand-700 transition font-medium text-sm">Send</button>
-            </div>
-          </div>
-        </div>
-      </div>
+    </div>
+  </section>
+
+  <div class="container">
+    <div class="cta">
+      <h2>Ready to Know Your Customers?</h2>
+      <p>Start free today. No credit card required.</p>
+      <a href="app.html" class="btn btn-primary" style="font-size:18px;padding:18px 40px">Get Started Free</a>
     </div>
   </div>
-  
-  <!-- Insights Tab -->
-  <div id="tab-insights" class="hidden fade-in">
-    <div class="flex items-center justify-between mb-6">
-      <div>
-        <h3 class="font-semibold text-gray-900 text-lg">Actionable Insights</h3>
-        <p class="text-sm text-gray-500">AI-generated recommendations based on customer feedback analysis</p>
-      </div>
-      <div class="flex gap-2">
-        <button onclick="filterInsights('all')" class="text-xs px-3 py-1.5 rounded-full bg-brand-100 text-brand-700 font-medium">All</button>
-        <button onclick="filterInsights('pricing')" class="text-xs px-3 py-1.5 rounded-full bg-gray-100 text-gray-600 font-medium hover:bg-gray-200">Pricing</button>
-        <button onclick="filterInsights('service')" class="text-xs px-3 py-1.5 rounded-full bg-gray-100 text-gray-600 font-medium hover:bg-gray-200">Service</button>
-        <button onclick="filterInsights('operations')" class="text-xs px-3 py-1.5 rounded-full bg-gray-100 text-gray-600 font-medium hover:bg-gray-200">Operations</button>
-        <button onclick="filterInsights('marketing')" class="text-xs px-3 py-1.5 rounded-full bg-gray-100 text-gray-600 font-medium hover:bg-gray-200">Marketing</button>
-      </div>
+
+  <footer>
+    <div class="container">
+      <p>© 2026 Simon AI. All rights reserved.</p>
     </div>
-    <div class="space-y-4" id="insights-list">
-      <!-- Populated dynamically -->
-    </div>
-  </div>
-  
-  <!-- Reviews Tab -->
-  <div id="tab-reviews" class="hidden fade-in">
-    <div class="flex items-center justify-between mb-6">
-      <h3 class="font-semibold text-gray-900 text-lg">Customer Reviews</h3>
-      <div class="flex gap-2">
-        <button onclick="filterReviews('all')" class="text-xs px-3 py-1.5 rounded-full bg-brand-100 text-brand-700 font-medium">All</button>
-        <button onclick="filterReviews('positive')" class="text-xs px-3 py-1.5 rounded-full bg-green-100 text-green-700 font-medium">Positive</button>
-        <button onclick="filterReviews('mixed')" class="text-xs px-3 py-1.5 rounded-full bg-yellow-100 text-yellow-700 font-medium">Mixed</button>
-        <button onclick="filterReviews('negative')" class="text-xs px-3 py-1.5 rounded-full bg-red-100 text-red-700 font-medium">Negative</button>
-      </div>
-    </div>
-    <div class="space-y-3" id="reviews-list">
-      <!-- Populated dynamically -->
-    </div>
-  </div>
-  
-</main>
+  </footer>
 
-<!-- Add Business Modal -->
-<div id="add-business-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center">
-  <div class="bg-white rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl">
-    <h3 class="text-xl font-bold text-gray-900 mb-2">Add a Business</h3>
-    <p class="text-sm text-gray-500 mb-6">Enter your business details to start generating customer intelligence.</p>
-    <div class="space-y-4">
-      <div>
-        <label class="text-sm font-medium text-gray-700 mb-1 block">Business Name *</label>
-        <input type="text" id="new-biz-name" class="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm" placeholder="e.g. The Corner Café">
-      </div>
-      <div>
-        <label class="text-sm font-medium text-gray-700 mb-1 block">Address</label>
-        <input type="text" id="new-biz-address" class="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm" placeholder="e.g. 123 Main St, Madrid">
-      </div>
-      <div>
-        <label class="text-sm font-medium text-gray-700 mb-1 block">Category</label>
-        <select id="new-biz-category" class="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm">
-          <option value="">Select category...</option>
-          <option>Restaurant/Café</option>
-          <option>Hair Salon</option>
-          <option>Gym/Fitness</option>
-          <option>Dental Practice</option>
-          <option>Auto Repair</option>
-          <option>Retail Store</option>
-          <option>Hotel/B&B</option>
-          <option>Medical Practice</option>
-          <option>Law Firm</option>
-          <option>Real Estate Agency</option>
-          <option>Other</option>
-        </select>
-      </div>
-    </div>
-    <div class="flex gap-3 mt-6">
-      <button onclick="closeAddBusiness()" class="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50">Cancel</button>
-      <button onclick="addBusiness()" class="flex-1 px-4 py-2.5 bg-brand-600 text-white rounded-xl text-sm font-medium hover:bg-brand-700">Analyze Reviews →</button>
-    </div>
-  </div>
-</div>
-
-<script>
-const API = 'https://simon-ai-api.onrender.com/api';
-let currentBusiness = null;
-let businesses = [];
-let personas = [];
-let reviews = [];
-let insights = [];
-let chatHistory = [];
-let selectedChatPersona = null;
-let ratingChart = null;
-let sentimentChart = null;
-
-// ─── Init ────────────────────────────────────────────────────────────────────
-
-async function init() {
-  try {
-    const resp = await fetch(`${API}/businesses`);
-    businesses = await resp.json();
-    renderBusinessSelector();
-    if (businesses.length > 0) selectBusiness(businesses[0].id);
-  } catch(e) {
-    console.error('Failed to connect to API:', e);
-    document.querySelector('main').innerHTML = `
-      <div class="text-center py-20">
-        <span class="text-5xl mb-4 block">⚠️</span>
-        <h2 class="text-xl font-bold text-gray-900 mb-2">Backend Not Running</h2>
-        <p class="text-gray-500">Start the Simon AI backend: <code class="bg-gray-100 px-2 py-1 rounded text-sm">python3 main.py</code></p>
-      </div>`;
-  }
-}
-
-function renderBusinessSelector() {
-  const el = document.getElementById('business-selector');
-  el.innerHTML = businesses.map(b => `
-    <button onclick="selectBusiness('${b.id}')" 
-      class="px-3 py-1.5 rounded-lg text-sm font-medium transition ${currentBusiness?.id === b.id ? 'bg-brand-100 text-brand-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}"
-      data-biz="${b.id}">
-      ${b.name}
-    </button>
-  `).join('');
-}
-
-async function selectBusiness(id) {
-  currentBusiness = businesses.find(b => b.id === id);
-  renderBusinessSelector();
-  
-  // Fetch all data
-  const [reviewsResp, personasResp, insightsResp, analyticsResp] = await Promise.all([
-    fetch(`${API}/businesses/${id}/reviews`),
-    fetch(`${API}/businesses/${id}/personas`),
-    fetch(`${API}/businesses/${id}/insights`),
-    fetch(`${API}/businesses/${id}/analytics`),
-  ]);
-  
-  reviews = await reviewsResp.json();
-  personas = await personasResp.json();
-  insights = await insightsResp.json();
-  const analytics = await analyticsResp.json();
-  
-  renderDashboard(analytics);
-  renderPersonas();
-  renderChatPersonaList();
-  renderInsights();
-  renderReviews();
-}
-
-// ─── Dashboard ───────────────────────────────────────────────────────────────
-
-function renderDashboard(analytics) {
-  document.getElementById('kpi-reviews').textContent = analytics.total_reviews;
-  document.getElementById('kpi-rating').textContent = analytics.avg_rating;
-  document.getElementById('kpi-personas').textContent = analytics.persona_count;
-  document.getElementById('kpi-sentiment').textContent = (analytics.sentiment.average > 0 ? '+' : '') + analytics.sentiment.average;
-  document.getElementById('kpi-sentiment-detail').textContent = `${analytics.sentiment.positive_pct}% positive`;
-  
-  // Rating Chart
-  if (ratingChart) ratingChart.destroy();
-  const ratingCtx = document.getElementById('ratingChart').getContext('2d');
-  ratingChart = new Chart(ratingCtx, {
-    type: 'bar',
-    data: {
-      labels: ['1★', '2★', '3★', '4★', '5★'],
-      datasets: [{
-        data: [1,2,3,4,5].map(r => analytics.rating_distribution[r] || 0),
-        backgroundColor: ['#ef4444','#f97316','#eab308','#84cc16','#22c55e'],
-        borderRadius: 8,
-        borderSkipped: false,
-      }]
-    },
-    options: {
-      responsive: true,
-      plugins: { legend: { display: false } },
-      scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } }, x: { grid: { display: false } } }
-    }
-  });
-  
-  // Sentiment Chart
-  if (sentimentChart) sentimentChart.destroy();
-  const sentCtx = document.getElementById('sentimentChart').getContext('2d');
-  sentimentChart = new Chart(sentCtx, {
-    type: 'doughnut',
-    data: {
-      labels: ['Positive', 'Neutral', 'Negative'],
-      datasets: [{
-        data: [analytics.sentiment.positive_pct, analytics.sentiment.neutral_pct, analytics.sentiment.negative_pct],
-        backgroundColor: ['#22c55e', '#94a3b8', '#ef4444'],
-        borderWidth: 0,
-      }]
-    },
-    options: {
-      responsive: true,
-      cutout: '65%',
-      plugins: { legend: { position: 'bottom' } }
-    }
-  });
-  
-  // Persona Preview Cards
-  const container = document.getElementById('persona-preview-cards');
-  container.innerHTML = personas.slice(0, 3).map((p, i) => `
-    <div class="bg-white rounded-2xl p-6 card-hover shadow-sm cursor-pointer" onclick="switchTab('personas');selectPersona(${i})">
-      <div class="flex items-center gap-3 mb-4">
-        <div class="w-12 h-12 gradient-bg rounded-full flex items-center justify-center text-white font-bold text-lg">${p.name.charAt(4)}</div>
-        <div>
-          <div class="font-semibold text-gray-900">${p.name}</div>
-          <div class="text-xs text-gray-500">${p.age_range} · ${p.visit_frequency}</div>
-        </div>
-      </div>
-      <p class="text-sm text-gray-600 mb-3 line-clamp-2">${p.description}</p>
-      <div class="flex items-center justify-between">
-        <span class="text-xs font-medium ${p.typical_rating >= 4 ? 'text-green-600' : p.typical_rating >= 3 ? 'text-yellow-600' : 'text-red-600'}">${p.typical_rating}★ avg</span>
-        <span class="text-xs text-gray-400">${p.percentage}% of customers</span>
-      </div>
-    </div>
-  `).join('');
-}
-
-// ─── Personas ────────────────────────────────────────────────────────────────
-
-function renderPersonas() {
-  const list = document.getElementById('persona-list');
-  list.innerHTML = personas.map((p, i) => `
-    <div onclick="selectPersona(${i})" class="bg-white rounded-xl p-4 cursor-pointer card-hover shadow-sm border-2 border-transparent hover:border-brand-200" data-persona="${i}">
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 gradient-bg rounded-full flex items-center justify-center text-white font-semibold">${p.name.charAt(4)}</div>
-        <div class="flex-1 min-w-0">
-          <div class="font-semibold text-gray-900 text-sm truncate">${p.name}</div>
-          <div class="text-xs text-gray-500">${p.age_range} · ${p.percentage}%</div>
-        </div>
-        <div class="text-xs font-medium ${p.typical_rating >= 4 ? 'text-green-600' : p.typical_rating >= 3 ? 'text-yellow-600' : 'text-red-600'}">${p.typical_rating}★</div>
-      </div>
-    </div>
-  `).join('');
-}
-
-function selectPersona(idx) {
-  const p = personas[idx];
-  if (!p) return;
-  
-  // Highlight selected
-  document.querySelectorAll('[data-persona]').forEach(el => el.classList.remove('border-brand-500'));
-  document.querySelector(`[data-persona="${idx}"]`)?.classList.add('border-brand-500');
-  
-  const detail = document.getElementById('persona-detail');
-  detail.innerHTML = `
-    <div class="fade-in">
-      <div class="flex items-center gap-4 mb-6">
-        <div class="w-16 h-16 gradient-bg rounded-full flex items-center justify-center text-white font-bold text-2xl persona-ring">${p.name.charAt(4)}</div>
-        <div>
-          <h2 class="text-2xl font-bold text-gray-900">${p.name}</h2>
-          <p class="text-gray-500">${p.age_range} · ${p.visit_frequency}</p>
-        </div>
-        <div class="ml-auto text-right">
-          <div class="text-2xl font-bold ${p.typical_rating >= 4 ? 'text-green-600' : 'text-yellow-600'}">${p.typical_rating}★</div>
-          <div class="text-xs text-gray-400">${p.percentage}% of customers</div>
-        </div>
-      </div>
-      
-      <p class="text-gray-700 mb-6 leading-relaxed">${p.description}</p>
-      
-      <div class="grid grid-cols-2 gap-6 mb-6">
-        <div>
-          <h4 class="font-semibold text-gray-900 mb-2 text-sm">✅ Motivations</h4>
-          <div class="space-y-1.5">
-            ${p.motivations.map(m => `<div class="text-sm text-gray-600 bg-green-50 px-3 py-1.5 rounded-lg">${m}</div>`).join('')}
-          </div>
-        </div>
-        <div>
-          <h4 class="font-semibold text-gray-900 mb-2 text-sm">⚠️ Pain Points</h4>
-          <div class="space-y-1.5">
-            ${p.pain_points.map(pp => `<div class="text-sm text-gray-600 bg-red-50 px-3 py-1.5 rounded-lg">${pp}</div>`).join('')}
-          </div>
-        </div>
-      </div>
-      
-      <div class="grid grid-cols-2 gap-6">
-        <div class="bg-gray-50 rounded-xl p-4">
-          <h4 class="font-semibold text-gray-900 mb-1 text-sm">💰 Spending</h4>
-          <p class="text-sm text-gray-600">${p.spending_behavior}</p>
-        </div>
-        <div class="bg-gray-50 rounded-xl p-4">
-          <h4 class="font-semibold text-gray-900 mb-1 text-sm">📊 Sentiment</h4>
-          <p class="text-sm text-gray-600">${p.sentiment}</p>
-        </div>
-      </div>
-      
-      <div class="mt-6 pt-6 border-t">
-        <button onclick="switchTab('chat');selectChatPersona('${p.id}')" class="w-full py-3 bg-brand-600 text-white rounded-xl font-medium hover:bg-brand-700 transition">
-          💬 Chat with ${p.name}
-        </button>
-      </div>
-    </div>
-  `;
-}
-
-// ─── Chat ────────────────────────────────────────────────────────────────────
-
-function renderChatPersonaList() {
-  const list = document.getElementById('chat-persona-list');
-  list.innerHTML = personas.map(p => `
-    <button onclick="selectChatPersona('${p.id}')" 
-      class="w-full flex items-center gap-2 p-2.5 rounded-lg text-left hover:bg-gray-100 transition ${selectedChatPersona?.id === p.id ? 'bg-brand-50 border border-brand-200' : ''}"
-      data-chat-persona="${p.id}">
-      <div class="w-8 h-8 gradient-bg rounded-full flex items-center justify-center text-white text-xs font-bold">${p.name.charAt(4)}</div>
-      <div class="min-w-0">
-        <div class="text-sm font-medium text-gray-900 truncate">${p.name}</div>
-        <div class="text-xs text-gray-400">${p.age_range}</div>
-      </div>
-    </button>
-  `).join('');
-}
-
-function selectChatPersona(id) {
-  selectedChatPersona = personas.find(p => p.id === id);
-  if (!selectedChatPersona) return;
-  
-  chatHistory = [];
-  renderChatPersonaList();
-  
-  document.getElementById('chat-persona-name').textContent = selectedChatPersona.name;
-  document.getElementById('chat-persona-desc').textContent = `${selectedChatPersona.age_range} · ${selectedChatPersona.sentiment}`;
-  
-  const msgs = document.getElementById('chat-messages');
-  msgs.innerHTML = `
-    <div class="chat-bubble-persona px-4 py-3 max-w-md fade-in">
-      <p class="text-sm">Hi! I'm ${selectedChatPersona.name}. I'm a ${selectedChatPersona.age_range} year old customer of ${currentBusiness.name}. Ask me anything about my experience!</p>
-    </div>
-  `;
-}
-
-async function sendMessage() {
-  if (!selectedChatPersona || !currentBusiness) return;
-  const input = document.getElementById('chat-input');
-  const text = input.value.trim();
-  if (!text) return;
-  input.value = '';
-  
-  const msgs = document.getElementById('chat-messages');
-  
-  // Add user message
-  msgs.innerHTML += `<div class="flex justify-end fade-in"><div class="chat-bubble-user px-4 py-3 max-w-md"><p class="text-sm">${text}</p></div></div>`;
-  
-  chatHistory.push({ role: 'user', content: text });
-  
-  // Typing indicator
-  msgs.innerHTML += `<div id="typing" class="flex gap-1 px-4 py-3 fade-in"><div class="w-2 h-2 bg-gray-300 rounded-full animate-bounce" style="animation-delay:0ms"></div><div class="w-2 h-2 bg-gray-300 rounded-full animate-bounce" style="animation-delay:150ms"></div><div class="w-2 h-2 bg-gray-300 rounded-full animate-bounce" style="animation-delay:300ms"></div></div>`;
-  msgs.scrollTop = msgs.scrollHeight;
-  
-  try {
-    const resp = await fetch(`${API}/businesses/${currentBusiness.id}/chat`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        business_id: currentBusiness.id,
-        persona_id: selectedChatPersona.id,
-        message: text,
-        history: chatHistory,
-      })
+  <script>
+    document.querySelectorAll('.faq-question').forEach(q => {
+      q.addEventListener('click', () => {
+        q.parentElement.classList.toggle('active');
+        q.querySelector('span').textContent = q.parentElement.classList.contains('active') ? '▲' : '▼';
+      });
     });
-    const data = await resp.json();
-    
-    document.getElementById('typing')?.remove();
-    
-    chatHistory.push({ role: 'persona', content: data.response });
-    
-    msgs.innerHTML += `<div class="chat-bubble-persona px-4 py-3 max-w-md fade-in"><p class="text-sm">${data.response}</p></div>`;
-  } catch(e) {
-    document.getElementById('typing')?.remove();
-    msgs.innerHTML += `<div class="chat-bubble-persona px-4 py-3 max-w-md fade-in"><p class="text-sm text-red-500">⚠️ API error. Set GEMINI_API_KEY for live responses.</p></div>`;
-  }
-  
-  msgs.scrollTop = msgs.scrollHeight;
-}
-
-function sendSuggestion(text) {
-  document.getElementById('chat-input').value = text;
-  sendMessage();
-}
-
-// ─── Insights ────────────────────────────────────────────────────────────────
-
-function renderInsights(filter = 'all') {
-  const filtered = filter === 'all' ? insights : insights.filter(i => i.category === filter);
-  const list = document.getElementById('insights-list');
-  
-  const categoryIcons = { pricing: '💰', service: '🤝', operations: '⚙️', marketing: '📣', product: '📦' };
-  const impactColors = { high: 'bg-red-100 text-red-700', medium: 'bg-yellow-100 text-yellow-700', low: 'bg-green-100 text-green-700' };
-  
-  list.innerHTML = filtered.sort((a, b) => b.priority_score - a.priority_score).map(ins => `
-    <div class="bg-white rounded-2xl p-6 shadow-sm card-hover fade-in">
-      <div class="flex items-start gap-4">
-        <div class="text-3xl">${categoryIcons[ins.category] || '💡'}</div>
-        <div class="flex-1">
-          <div class="flex items-center gap-2 mb-1">
-            <h4 class="font-semibold text-gray-900">${ins.title}</h4>
-            <span class="text-xs px-2 py-0.5 rounded-full ${impactColors[ins.impact]}">${ins.impact} impact</span>
-            <span class="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">${ins.effort} effort</span>
-          </div>
-          <p class="text-sm text-gray-600 leading-relaxed">${ins.description}</p>
-        </div>
-        <div class="text-right">
-          <div class="text-2xl font-bold gradient-text">${ins.priority_score}</div>
-          <div class="text-xs text-gray-400">priority</div>
-        </div>
-      </div>
-    </div>
-  `).join('');
-}
-
-function filterInsights(category) {
-  renderInsights(category);
-  // Update button styles
-  document.querySelectorAll('#tab-insights button[onclick^="filterInsights"]').forEach(btn => {
-    btn.className = btn.textContent.trim().toLowerCase() === category || category === 'all' && btn.textContent.trim() === 'All'
-      ? 'text-xs px-3 py-1.5 rounded-full bg-brand-100 text-brand-700 font-medium'
-      : 'text-xs px-3 py-1.5 rounded-full bg-gray-100 text-gray-600 font-medium hover:bg-gray-200';
-  });
-}
-
-// ─── Reviews ─────────────────────────────────────────────────────────────────
-
-function renderReviews(filter = 'all') {
-  const filtered = filter === 'all' ? reviews : reviews.filter(r => {
-    if (filter === 'positive') return r.sentiment_score > 0.3;
-    if (filter === 'negative') return r.sentiment_score < -0.3;
-    return r.sentiment_score >= -0.3 && r.sentiment_score <= 0.3;
-  });
-  
-  const list = document.getElementById('reviews-list');
-  list.innerHTML = filtered.map(r => `
-    <div class="bg-white rounded-xl p-5 shadow-sm ${r.sentiment_score > 0.3 ? 'sentiment-positive' : r.sentiment_score < -0.3 ? 'sentiment-negative' : 'sentiment-mixed'}">
-      <div class="flex items-center justify-between mb-2">
-        <div class="flex items-center gap-2">
-          <span class="font-semibold text-gray-900 text-sm">${r.author}</span>
-          <span class="text-yellow-400">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</span>
-        </div>
-        <div class="flex items-center gap-2">
-          <span class="text-xs px-2 py-0.5 rounded-full ${r.sentiment_score > 0.3 ? 'bg-green-100 text-green-700' : r.sentiment_score < -0.3 ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'}">${r.sentiment_label}</span>
-          <span class="text-xs text-gray-400">${r.date}</span>
-        </div>
-      </div>
-      <p class="text-sm text-gray-700 leading-relaxed">${r.text}</p>
-    </div>
-  `).join('');
-}
-
-function filterReviews(filter) { renderReviews(filter); }
-
-// ─── Tabs ────────────────────────────────────────────────────────────────────
-
-function switchTab(tab) {
-  document.querySelectorAll('[id^="tab-"]').forEach(el => el.classList.add('hidden'));
-  document.getElementById(`tab-${tab}`).classList.remove('hidden');
-  
-  document.querySelectorAll('#tabs button').forEach(btn => {
-    btn.classList.toggle('tab-active', btn.dataset.tab === tab);
-  });
-}
-
-// ─── Add Business ────────────────────────────────────────────────────────────
-
-function showAddBusiness() { document.getElementById('add-business-modal').classList.remove('hidden'); }
-function closeAddBusiness() { document.getElementById('add-business-modal').classList.add('hidden'); }
-
-async function addBusiness() {
-  const name = document.getElementById('new-biz-name').value.trim();
-  if (!name) return alert('Business name is required');
-  
-  const resp = await fetch(`${API}/businesses`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      name,
-      address: document.getElementById('new-biz-address').value,
-      category: document.getElementById('new-biz-category').value,
-    })
-  });
-  const data = await resp.json();
-  closeAddBusiness();
-  
-  // Refresh
-  const bizResp = await fetch(`${API}/businesses`);
-  businesses = await bizResp.json();
-  renderBusinessSelector();
-  selectBusiness(data.id);
-}
-
-// ─── Boot ────────────────────────────────────────────────────────────────────
-init();
-</script>
+    document.querySelectorAll('a[href^="#"]').forEach(a => {
+      a.addEventListener('click', e => {
+        e.preventDefault();
+        const t = document.querySelector(a.getAttribute('href'));
+        if(t) t.scrollIntoView({behavior:'smooth'});
+      });
+    });
+  </script>
 </body>
 </html>
